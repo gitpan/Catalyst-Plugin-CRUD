@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use base qw(Catalyst::Plugin::CRUD);
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 NAME
 
@@ -105,13 +105,15 @@ triggers:
 sub create {
     my ( $c, $self ) = @_;
     my $config  = $self->config($c);
+    my $primary = $config->{primary};
     my @columns = @{ $config->{columns} };
 
-    if ( length( $c->req->param( $columns[0] ) ) > 0 ) {
+    # insert new record
+    if ( defined $c->req->param( $columns[0] ) && length( $c->req->param( $columns[0] ) ) > 0 ) {
         my $hash;
         for my $column (@columns) {
             my $param = $c->req->param($column);
-            $hash->{$column} = $param if ( length($param) > 0 );
+            $hash->{$column} = $param if ( defined $param && length($param) > 0 );
         }
         $self->call_trigger( 'create_before', $c, $hash );
         unless ( $c->stash->{create}->{error} ) {
@@ -119,9 +121,23 @@ sub create {
             $self->call_trigger( 'create_after', $c, $model );
             return $c->res->redirect( $config->{default} );
         }
+
+        # create error
+        else {
+            $self->call_trigger( 'input_before', $c );
+        }
     }
 
+    # prepare create form
     else {
+        if ( $c->req->args->[0] =~ /^\d+$/ ) {
+            my $model = $c->model( $config->{model} )->find( $primary => $c->req->args->[0] );
+            for my $item (@columns) {
+                if ( defined $model && $model->can($item) ) {
+                    $c->req->params->{$item} = $model->$item;
+                }
+            }
+        }
         $self->call_trigger( 'input_before', $c );
     }
 
@@ -144,20 +160,28 @@ sub read {
     my $primary = $config->{primary};
     my @columns = @{ $config->{columns} };
 
+    # prepare read form
     if ( $c->req->args->[0] =~ /^\d+$/ ) {
         my $model = $c->model( $config->{model} )->find( $primary => $c->req->args->[0] );
-        my $method = $columns[0];
-        $model->$method;
-        $c->stash->{ $config->{name} } = $model;
+        if ( defined $model ) {
+            my $method = $columns[0];
+            $model->$method;
+            $c->stash->{ $config->{name} } = $model;
+            $self->call_trigger( 'read_before', $c );
+        }
+
+        # read error
+        else {
+            return $c->res->redirect( $config->{default} );
+        }
     }
 
+    # read error
     else {
-        $c->res->redirect( $config->{default} );
+        return $c->res->redirect( $config->{default} );
     }
 
     $c->stash->{template} = $config->{template}->{prefix} . $config->{template}->{read};
-
-    $self->call_trigger( 'read_before', $c );
 }
 
 =head2 update
@@ -180,12 +204,14 @@ sub update {
     my $primary = $config->{primary};
     my @columns = @{ $config->{columns} };
 
+    # find record for update
     if ( $c->req->args->[0] =~ /^\d+$/ ) {
         my $model = $c->model( $config->{model} )->find( $primary => $c->req->args->[0] );
         $c->stash->{ $config->{name} } = $model;
         $self->call_trigger( 'input_before', $c );
     }
 
+    # prepare update form
     elsif ( $c->req->param($primary) =~ /^\d+$/ ) {
         my $model = $c->model( $config->{model} )->find( $primary => $c->req->param($primary) );
         for my $column (@columns) {
@@ -197,8 +223,14 @@ sub update {
             $self->call_trigger( 'update_after', $c, $model );
             return $c->res->redirect( $config->{default} );
         }
+
+        # update error
+        else {
+            $self->call_trigger( 'input_before', $c );
+        }
     }
 
+    # update error
     else {
         return $c->res->redirect( $config->{default} );
     }
@@ -210,7 +242,7 @@ sub update {
 
 delete action.
 
-if $c->stash->{update}->{error} is 1, then do not delete recoed.
+if $c->stash->{delete}->{error} is 1, then do not delete recoed.
 
 triggers:
 
@@ -224,6 +256,7 @@ sub delete {
     my $config  = $self->config($c);
     my $primary = $config->{primary};
 
+    # delete record
     if ( $c->req->args->[0] =~ /^\d+$/ ) {
         my $model = $c->model( $config->{model} )->find( $primary => $c->req->args->[0] );
         $self->call_trigger( 'delete_before', $c, $model );
