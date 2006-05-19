@@ -1,6 +1,6 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
-0.03  Fri May 19 23:36:42 2006
+0.04  Fri May 19 23:36:42 2006
 	- added scaffold helper
 
 0.02  Fri May 19 16:42:42 2006

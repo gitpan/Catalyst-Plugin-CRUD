@@ -6,4 +6,5 @@ t/Catalyst-Plugin-CRUD.t
 lib/Catalyst/Plugin/CRUD.pm
 lib/Catalyst/Plugin/CRUD/CDBI.pm
 lib/Catalyst/Plugin/CRUD/DBIC.pm
+lib/Catalyst/Helper/Model/CRUD.pm
 META.yml                                 Module meta-data (added by MakeMaker)
