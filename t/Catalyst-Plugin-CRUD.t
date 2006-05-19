@@ -5,10 +5,11 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 BEGIN { use_ok('Catalyst::Plugin::CRUD') };
 BEGIN { use_ok('Catalyst::Plugin::CRUD::CDBI') };
 BEGIN { use_ok('Catalyst::Plugin::CRUD::DBIC') };
+BEGIN { use_ok('Catalyst::Helper::Model::CRUD') };
 
 #########################
 
