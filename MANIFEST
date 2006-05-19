@@ -1,0 +1,9 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Catalyst-Plugin-CRUD.t
+lib/Catalyst/Plugin/CRUD.pm
+lib/Catalyst/Plugin/CRUD/CDBI.pm
+lib/Catalyst/Plugin/CRUD/DBIC.pm
+META.yml                                 Module meta-data (added by MakeMaker)
