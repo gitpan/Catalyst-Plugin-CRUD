@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 NAME
 
@@ -426,6 +426,8 @@ sub mk_compclass {
         # テンプレート出力
         my $path_name = lc $class_name;
         $helper->mk_dir("$template_dir/$path_name");
+        $helper->render_file( 'header_html', "$template_dir/header.html", $controller_vars );
+        $helper->render_file( 'footer_html', "$template_dir/footer.html", $controller_vars );
         $helper->render_file( 'create_html', "$template_dir/$path_name/create.html", $controller_vars );
         $helper->render_file( 'read_html',   "$template_dir/$path_name/read.html",   $controller_vars );
         $helper->render_file( 'update_html', "$template_dir/$path_name/update.html", $controller_vars );
@@ -509,6 +511,19 @@ sub config {
 }
 
 1;
+
+__header_html__
+<html>
+<head>
+<title>[% app_name %]</title>
+</head>
+<body>
+
+__footer_html__
+<hr>
+<div align="right">copyright (C) xxxx</div>
+</body>
+</html>
 
 __create_html__
 [% TAGS [- -] -%]
