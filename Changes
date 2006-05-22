@@ -1,6 +1,6 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
-0.05  Mon May 22 10:15:00 2006
+0.06  Mon May 22 10:15:00 2006
 	- added header.html and footer.html at Catalyst::Helper::Model::CRUD
 
 0.04  Fri May 19 23:36:00 2006

@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 NAME
 
@@ -597,7 +597,6 @@ __list_html__
   <th>ID</th>
   <th>╬э╨ы</th>
   <th>йт╫╦</th>
-  <th>йёю╫</th>
   <th>╨О╫Э</th>
 </tr>
 [% FOREACH [- path_name -] = c.stash.[- path_name -]s -%]
@@ -605,7 +604,6 @@ __list_html__
   <td>[% [- path_name -].[- primary -] %]</td>
   <td><a href="/[- path_name -]/read/[% [- path_name -].[- primary -] %]">╬э╨ы</a></td>
   <td><a href="/[- path_name -]/update/[% [- path_name -].[- primary -] %]">йт╫╦</a></td>
-  <td><a href="/[- path_name -]/create/[% [- path_name -].[- primary -] %]">йёю╫</a></td>
   <td><a href="/[- path_name -]/delete/[% [- path_name -].[- primary -] %]">╨О╫Э</a></td>
 </tr>
 [% END -%]
