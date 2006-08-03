@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use base qw(Catalyst::Plugin::CRUD);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 NAME
 
@@ -109,7 +109,7 @@ sub create {
     my @columns = @{ $config->{columns} };
 
     # insert new record
-    if ( defined $c->req->param( $columns[0] ) && length( $c->req->param( $columns[0] ) ) > 0 ) {
+    if ( $c->req->param( 'submit' ) ) {
         my $hash;
         for my $column (@columns) {
             my $param = $c->req->param($column);
@@ -117,9 +117,9 @@ sub create {
         }
         $self->call_trigger( 'create_before', $c, $hash );
         unless ( $c->stash->{create}->{error} ) {
-            my $model = $c->model( $config->{model} )->create($hash);
+            my $model = $c->model( $self->config($c)->{model} )->create($hash);
             $self->call_trigger( 'create_after', $c, $model );
-            return $c->res->redirect( $config->{default} );
+            return $c->res->redirect( $self->config($c)->{default} );
         }
 
         # create error
@@ -131,7 +131,7 @@ sub create {
     # prepare create form
     else {
         if ( $c->req->args->[0] =~ /^\d+$/ ) {
-            my $model = $c->model( $config->{model} )->retrieve( $primary => $c->req->args->[0] );
+            my $model = $c->model( $self->config($c)->{model} )->retrieve( $primary => $c->req->args->[0] );
             for my $item (@columns) {
                 if ( defined $model && $model->can($item) ) {
                     $c->req->params->{$item} = $model->$item;
@@ -141,7 +141,7 @@ sub create {
         $self->call_trigger( 'input_before', $c );
     }
 
-    $c->stash->{template} = $config->{template}->{prefix} . $config->{template}->{create};
+    $c->stash->{template} = $self->config($c)->{template}->{prefix} . $self->config($c)->{template}->{create};
 }
 
 =head2 read
@@ -162,26 +162,26 @@ sub read {
 
     # prepare read form
     if ( $c->req->args->[0] =~ /^\d+$/ ) {
-        my $model = $c->model( $config->{model} )->retrieve( $primary => $c->req->args->[0] );
+        my $model = $c->model( $self->config($c)->{model} )->retrieve( $primary => $c->req->args->[0] );
         if ( defined $model ) {
             my $method = $columns[0];
             $model->$method;
-            $c->stash->{ $config->{name} } = $model;
+            $c->stash->{ $self->config($c)->{name} } = $model;
             $self->call_trigger( 'read_before', $c );
         }
 
         # read error
         else {
-            return $c->res->redirect( $config->{default} );
+            return $c->res->redirect( $self->config($c)->{default} );
         }
     }
 
     # read error
     else {
-        return $c->res->redirect( $config->{default} );
+        return $c->res->redirect( $self->config($c)->{default} );
     }
 
-    $c->stash->{template} = $config->{template}->{prefix} . $config->{template}->{read};
+    $c->stash->{template} = $self->config($c)->{template}->{prefix} . $self->config($c)->{template}->{read};
 }
 
 =head2 update
@@ -206,14 +206,14 @@ sub update {
 
     # find record for update
     if ( $c->req->args->[0] =~ /^\d+$/ ) {
-        my $model = $c->model( $config->{model} )->retrieve( $primary => $c->req->args->[0] );
-        $c->stash->{ $config->{name} } = $model;
+        my $model = $c->model( $self->config($c)->{model} )->retrieve( $primary => $c->req->args->[0] );
+        $c->stash->{ $self->config($c)->{name} } = $model;
         $self->call_trigger( 'input_before', $c );
     }
 
     # prepare update form
     elsif ( $c->req->param($primary) =~ /^\d+$/ ) {
-        my $model = $c->model( $config->{model} )->retrieve( $primary => $c->req->param($primary) );
+        my $model = $c->model( $self->config($c)->{model} )->retrieve( $primary => $c->req->param($primary) );
         for my $column (@columns) {
             $model->$column( $c->req->param($column) ) if ( $model->can($column) );
         }
@@ -221,7 +221,7 @@ sub update {
         unless ( $c->stash->{update}->{error} ) {
             $model->update();
             $self->call_trigger( 'update_after', $c, $model );
-            return $c->res->redirect( $config->{default} );
+            return $c->res->redirect( $self->config($c)->{default} );
         }
 
         # update error
@@ -232,10 +232,10 @@ sub update {
 
     # update error
     else {
-        return $c->res->redirect( $config->{default} );
+        return $c->res->redirect( $self->config($c)->{default} );
     }
 
-    $c->stash->{template} = $config->{template}->{prefix} . $config->{template}->{update};
+    $c->stash->{template} = $self->config($c)->{template}->{prefix} . $self->config($c)->{template}->{update};
 }
 
 =head2 delete
@@ -258,7 +258,7 @@ sub delete {
 
     # delete record
     if ( $c->req->args->[0] =~ /^\d+$/ ) {
-        my $model = $c->model( $config->{model} )->retrieve( $primary => $c->req->args->[0] );
+        my $model = $c->model( $self->config($c)->{model} )->retrieve( $primary => $c->req->args->[0] );
         $self->call_trigger( 'delete_before', $c, $model );
         unless ( $c->stash->{delete}->{error} ) {
             $model->delete();
@@ -266,7 +266,7 @@ sub delete {
         }
     }
 
-    $c->res->redirect( $config->{default} );
+    $c->res->redirect( $self->config($c)->{default} );
 }
 
 =head2 list

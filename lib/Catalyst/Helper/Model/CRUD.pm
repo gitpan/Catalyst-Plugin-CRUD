@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 NAME
 
@@ -12,7 +12,7 @@ Catalyst::Helper::Model::CRUD - generate sqls, controllers and templates from DB
 
 =head1 SYNOPSIS
 
-    ./myapp_create.pl model CRUD CRUD [DBDesigner 4 File] [some modules]
+    ./myapp_create.pl model DBIC CRUD [DBDesigner 4 File] [some modules]
 
 =head1 DESCRIPTION
 
@@ -180,6 +180,7 @@ analyse DBDesigner 4 file and generate sqls, controllers and templates
 
 sub mk_compclass {
     my ( $this, $helper, $file, @limited_file ) = @_;
+
     print "==========================================================\n";
 
     # ファイル名は必須
@@ -415,8 +416,9 @@ sub mk_compclass {
         # コントローラ出力
         my $controller_vars;
         $controller_vars->{'app_name'}   = $helper->{'app'};
-        $controller_vars->{'class_name'} = $class_name;
         $controller_vars->{'path_name'}  = lc $class_name;
+        $controller_vars->{'model_name'} = $helper->{'name'};
+        $controller_vars->{'class_name'} = $class_name;
         $controller_vars->{'comment'}    = $this->encode( $table->{'Comments'} );
         $controller_vars->{'primary'}    = $this->get_primary(@sqls);
         $controller_vars->{'columns'}    = $this->get_columns(@sqls);
@@ -485,6 +487,26 @@ sub default : Private {
     $c->forward('list');
 }
 
+#sub create : Local {
+#    my ( $self, $c ) = @_;
+#    $c->create($self);
+#}
+
+#sub read : Local {
+#    my ( $self, $c ) = @_;
+#    $c->read($self);
+#}
+
+#sub update : Local {
+#    my ( $self, $c ) = @_;
+#    $c->update($self);
+#}
+
+#sub delete : Local {
+#    my ( $self, $c ) = @_;
+#    $c->delete($self);
+#}
+
 sub list : Local {
     my ( $self, $c ) = @_;
     $c->list($self);
@@ -494,7 +516,7 @@ sub config {
     my ( $self, $c ) = @_;
     my $hash = {
         'name'     => '[% path_name %]',
-        'model'    => 'DBIC::[% class_name %]',
+        'model'    => '[% model_name %]::[% class_name %]',
         'primary'  => '[% primary %]',
         'columns'  => [qw([% columns %])],
         'default'  => '/[% path_name %]/list',
