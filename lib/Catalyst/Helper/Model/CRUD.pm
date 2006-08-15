@@ -194,18 +194,28 @@ sub mk_compclass {
     my $tree   = $parser->XMLin($file);
 
     # SQL・コントローラ・テンプレート用のディレクトリを作る
-    my $schema_dir     = sprintf( "%s/sql/schema", $helper->{'base'} );
-    my $controller_dir = sprintf( "%s/lib/%s/Controller",   $helper->{'base'}, $helper->{'app'} );
-    my $template_dir   = sprintf( "%s/root/template",  $helper->{'base'} );
+    my $schema_dir     = sprintf( "%s/sql/schema",        $helper->{'base'} );
+    my $i18n_dir       = sprintf( "%s/I18N",              $helper->{'base'} );
+    my $controller_dir = sprintf( "%s/lib/%s/Controller", $helper->{'base'}, $helper->{'app'} );
+    my $template_dir   = sprintf( "%s/root/template",     $helper->{'base'} );
     $helper->mk_dir($schema_dir);
+    $helper->mk_dir($i18n_dir);
     $helper->mk_dir($controller_dir);
     $helper->mk_dir($template_dir);
 
     # リレーションとテーブル一覧を取得する
-    @relations = @{ $tree->{'METADATA'}->{'RELATIONS'}->{'RELATION'} }
-        if ref $tree->{'METADATA'}->{'RELATIONS'}->{'RELATION'} eq 'ARRAY';
-    @tables = @{ $tree->{'METADATA'}->{'TABLES'}->{'TABLE'} }
-        if ref $tree->{'METADATA'}->{'TABLES'}->{'TABLE'} eq 'ARRAY';
+    if ( ref $tree->{'METADATA'}->{'RELATIONS'}->{'RELATION'} eq 'ARRAY' ) {
+        @relations = @{ $tree->{'METADATA'}->{'RELATIONS'}->{'RELATION'} };
+    }
+    else {
+        push( @relations, $tree->{'METADATA'}->{'RELATIONS'}->{'RELATION'} );
+    }
+    if ( ref $tree->{'METADATA'}->{'TABLES'}->{'TABLE'} eq 'ARRAY' ) {
+        @tables = @{ $tree->{'METADATA'}->{'TABLES'}->{'TABLE'} };
+    }
+    else {
+        push( @tables, $tree->{'METADATA'}->{'TABLES'}->{'TABLE'} );
+    }
 
     # 指定したモジュールのみ
     my %limit;
@@ -220,7 +230,8 @@ sub mk_compclass {
         }
 
         # 各テーブルの列一覧取得
-        my @columns = @{ $table->{'COLUMNS'}->{'COLUMN'} } if ref $table->{'COLUMNS'}->{'COLUMN'} eq 'ARRAY';
+        my @columns = @{ $table->{'COLUMNS'}->{'COLUMN'} }
+            if ref $table->{'COLUMNS'}->{'COLUMN'} eq 'ARRAY';
 
         # 各テーブルのインデックス覧取得
         my %indices;
@@ -428,13 +439,17 @@ sub mk_compclass {
         # テンプレート出力
         my $path_name = lc $class_name;
         $helper->mk_dir("$template_dir/$path_name");
-        $helper->render_file( 'header_html', "$template_dir/header.html", $controller_vars );
-        $helper->render_file( 'footer_html', "$template_dir/footer.html", $controller_vars );
+        $helper->render_file( 'header_html', "$template_dir/header.html",            $controller_vars );
+        $helper->render_file( 'footer_html', "$template_dir/footer.html",            $controller_vars );
         $helper->render_file( 'create_html', "$template_dir/$path_name/create.html", $controller_vars );
         $helper->render_file( 'read_html',   "$template_dir/$path_name/read.html",   $controller_vars );
         $helper->render_file( 'update_html', "$template_dir/$path_name/update.html", $controller_vars );
         $helper->render_file( 'list_html',   "$template_dir/$path_name/list.html",   $controller_vars );
     }
+
+    # 言語ファイル出力
+    $helper->render_file( 'ja_po', "$i18n_dir/ja.po" );
+    $helper->render_file( 'en_po', "$i18n_dir/en.po" );
 
     print "==========================================================\n";
 }
@@ -539,10 +554,12 @@ __header_html__
 <head>
 <title>[% app_name %]</title>
 </head>
+[% app_name %]
+<hr/>
 <body>
 
 __footer_html__
-<hr>
+<hr/>
 <div align="right">copyright (C) xxxx</div>
 </body>
 </html>
@@ -550,7 +567,7 @@ __footer_html__
 __create_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
-<h1>[- comment -]追加</h1>
+<h1>[- comment -][% c.loc('TITLE_CREATE') %]</h1>
 [% IF c.stash.create.error -%]
 <font color="red">[% c.stash.create.message %]</font>
 [% END -%]
@@ -562,7 +579,7 @@ __create_html__
   </tr>
 [- END --]
   <tr>
-    <td colspan="2" align="center"><input type="submit" name="submit" value="追加"></td>
+    <td colspan="2" align="center"><input type="submit" name="btn_create" value="[% c.loc('BUTTON_CREATE') %]"></td>
   </tr>
 </table>
 </form>
@@ -571,10 +588,10 @@ __create_html__
 __read_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
-<h1>[- comment -]詳細</h1>
+<h1>[- comment -][% c.loc('TITLE_READ') %]</h1>
 
 <form>
-<input type="button" name="new" value="編集" onclick="javascript:window.location='/[- path_name -]/update/[% c.stash.[- path_name -].[- primary -] %]';">
+<input type="button" name="btn_update" value="[% c.loc('TITLE_UPDATE') %]" onclick="javascript:window.location='/[- path_name -]/update/[% c.stash.[- path_name -].[- primary -] %]';">
 </form>
 
 <table border="1">
@@ -589,7 +606,7 @@ __read_html__
 __update_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
-<h1>[- comment -]編集</h1>
+<h1>[- comment -][% c.loc('TITLE_UPDATE') %]</h1>
 
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
 <table border="1">
@@ -599,7 +616,7 @@ __update_html__
   </tr>
 [- END --]
   <tr>
-    <td colspan="2" align="center"><input type="submit" name="submit" value="更新"></td>
+    <td colspan="2" align="center"><input type="submit" name="btn_create" value="[% c.loc('BUTTON_UPDATE') %]"></td>
   </tr>
 </table>
 </form>
@@ -608,26 +625,113 @@ __update_html__
 __list_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
-<h1>[- comment -]一覧</h1>
+<h1>[- comment -][% c.loc('TITLE_LIST') %]</h1>
 
 <form>
-<input type="button" name="new" value="新規" onclick="javascript:window.location='/[- path_name -]/create';">
+<input type="button" name="btn_create" value="[% c.loc('TITLE_CREATE') %]" onclick="javascript:window.location='/[- path_name -]/create';">
 </form>
 
 <table border="1">
 <tr>
   <th>ID</th>
-  <th>詳細</th>
-  <th>編集</th>
-  <th>削除</th>
+  <th>[% c.loc('TITLE_READ') %]</th>
+  <th>[% c.loc('TITLE_UPDATE') %]</th>
+  <th>[% c.loc('TITLE_DELETE') %]</th>
 </tr>
 [% FOREACH [- path_name -] = c.stash.[- path_name -]s -%]
 <tr>
   <td>[% [- path_name -].[- primary -] %]</td>
-  <td><a href="/[- path_name -]/read/[% [- path_name -].[- primary -] %]">詳細</a></td>
-  <td><a href="/[- path_name -]/update/[% [- path_name -].[- primary -] %]">編集</a></td>
-  <td><a href="/[- path_name -]/delete/[% [- path_name -].[- primary -] %]">削除</a></td>
+  <td><a href="/[- path_name -]/read/[% [- path_name -].[- primary -] %]">[% c.loc('TITLE_READ') %]</a></td>
+  <td><a href="/[- path_name -]/update/[% [- path_name -].[- primary -] %]">[% c.loc('TITLE_UPDATE') %]</a></td>
+  <td><a href="/[- path_name -]/delete/[% [- path_name -].[- primary -] %]">[% c.loc('TITLE_DELETE') %]</a></td>
 </tr>
 [% END -%]
 </table>
 [% INCLUDE template/footer.html -%]
+
+__ja_po__
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "TITLE_CREATE"
+msgstr "新規"
+
+msgid "TITLE_READ"
+msgstr "詳細"
+
+msgid "TITLE_UPDATE"
+msgstr "編集"
+
+msgid "TITLE_DELETE"
+msgstr "削除"
+
+msgid "TITLE_LIST"
+msgstr "一覧"
+
+msgid "BUTTON_CREATE"
+msgstr "追加"
+
+msgid "BUTTON_UPDATE"
+msgstr "更新"
+
+msgid "BUTTON_DELETE"
+msgstr "削除"
+
+__en_po__
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "TITLE_CREATE"
+msgstr "New"
+
+msgid "TITLE_READ"
+msgstr "Detail"
+
+msgid "TITLE_UPDATE"
+msgstr "Edit"
+
+msgid "TITLE_DELETE"
+msgstr "Delete"
+
+msgid "TITLE_LIST"
+msgstr "List"
+
+msgid "BUTTON_CREATE"
+msgstr "Add"
+
+msgid "BUTTON_UPDATE"
+msgstr "Update"
+
+msgid "BUTTON_DELETE"
+msgstr "Delete"
+

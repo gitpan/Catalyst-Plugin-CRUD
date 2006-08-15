@@ -1,5 +1,8 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
+0.08  Fri Aug 15 01:02:00 2006
+	- added I18N code
+
 0.07  Fri Aug 04 03:07:00 2006
 	- refactoring
 

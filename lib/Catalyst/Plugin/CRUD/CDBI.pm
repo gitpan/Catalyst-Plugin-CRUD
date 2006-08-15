@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use base qw(Catalyst::Plugin::CRUD);
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 NAME
 
@@ -15,7 +15,7 @@ Catalyst::Plugin::CRUD::CDBI - CRUD (create/read/update/delete) Plugin for Class
   # MyApp/lib/MyApp.pm
   package MyApp;
   
-  use Catalyst qw/-Debug CRUD::CDBI/;
+  use Catalyst qw/-Debug MakeText CRUD::CDBI/;
   
   1;
   
@@ -109,7 +109,7 @@ sub create {
     my @columns = @{ $config->{columns} };
 
     # insert new record
-    if ( $c->req->param( 'submit' ) ) {
+    if ( $c->req->param( 'btn_create' ) ) {
         my $hash;
         for my $column (@columns) {
             my $param = $c->req->param($column);
@@ -204,15 +204,8 @@ sub update {
     my $primary = $config->{primary};
     my @columns = @{ $config->{columns} };
 
-    # find record for update
-    if ( $c->req->args->[0] =~ /^\d+$/ ) {
-        my $model = $c->model( $self->config($c)->{model} )->retrieve( $primary => $c->req->args->[0] );
-        $c->stash->{ $self->config($c)->{name} } = $model;
-        $self->call_trigger( 'input_before', $c );
-    }
-
-    # prepare update form
-    elsif ( $c->req->param($primary) =~ /^\d+$/ ) {
+    # update already record
+    if ( $c->req->param( 'btn_update' ) ) {
         my $model = $c->model( $self->config($c)->{model} )->retrieve( $primary => $c->req->param($primary) );
         for my $column (@columns) {
             $model->$column( $c->req->param($column) ) if ( $model->can($column) );
@@ -228,6 +221,13 @@ sub update {
         else {
             $self->call_trigger( 'input_before', $c );
         }
+    }
+
+    # prepare update form
+    elsif ( $c->req->args->[0] =~ /^\d+$/ ) {
+        my $model = $c->model( $self->config($c)->{model} )->retrieve( $primary => $c->req->args->[0] );
+        $c->stash->{ $self->config($c)->{name} } = $model;
+        $self->call_trigger( 'input_before', $c );
     }
 
     # update error

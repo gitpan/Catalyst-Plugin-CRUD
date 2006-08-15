@@ -3,11 +3,11 @@ package Catalyst::Plugin::CRUD;
 use strict;
 use warnings;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 NAME
 
-Catalyst::Plugin::CRUD - CRUD (create/read/update/delete) Plugin Interface
+Catalyst::Plugin::CRUD - CRUD (create/read/update/delete) Plugin for Catalyst
 
 =head1 SYNOPSIS
 
