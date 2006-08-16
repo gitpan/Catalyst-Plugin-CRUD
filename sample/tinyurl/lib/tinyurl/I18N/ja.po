@@ -1,0 +1,24 @@
+msgid "TITLE_CREATE"
+msgstr "新規"
+
+msgid "TITLE_READ"
+msgstr "詳細"
+
+msgid "TITLE_UPDATE"
+msgstr "編集"
+
+msgid "TITLE_DELETE"
+msgstr "削除"
+
+msgid "TITLE_LIST"
+msgstr "一覧"
+
+msgid "BUTTON_CREATE"
+msgstr "追加"
+
+msgid "BUTTON_UPDATE"
+msgstr "更新"
+
+msgid "BUTTON_DELETE"
+msgstr "削除"
+

@@ -1,0 +1,27 @@
+[% INCLUDE template/header.html -%]
+<h1>TinyURL[% c.loc('TITLE_LIST') %]</h1>
+
+<form>
+<input type="button" name="btn_create" value="[% c.loc('TITLE_CREATE') %]" onclick="javascript:window.location='/tinyurl/create';">
+</form>
+
+<table border="1">
+<tr>
+  <th>ID</th>
+  <th>URL</th>
+  <th>[% c.loc('TITLE_READ') %]</th>
+  <th>[% c.loc('TITLE_UPDATE') %]</th>
+  <th>[% c.loc('TITLE_DELETE') %]</th>
+</tr>
+[% FOREACH tinyurl = c.stash.tinyurls -%]
+<tr>
+  <td><a href="[% tinyurl.long_url %]">[% tinyurl.id %]</a></td>
+  <td>[% tinyurl.long_url %]</td>
+  <td><a href="/tinyurl/read/[% tinyurl.id %]">[% c.loc('TITLE_READ') %]</a></td>
+  <td><a href="/tinyurl/update/[% tinyurl.id %]">[% c.loc('TITLE_UPDATE') %]</a></td>
+  <td><a href="/tinyurl/delete/[% tinyurl.id %]">[% c.loc('TITLE_DELETE') %]</a></td>
+</tr>
+[% END -%]
+</table>
+[% INCLUDE template/footer.html -%]
+

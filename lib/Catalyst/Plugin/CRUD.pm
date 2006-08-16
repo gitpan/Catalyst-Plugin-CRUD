@@ -3,7 +3,7 @@ package Catalyst::Plugin::CRUD;
 use strict;
 use warnings;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 NAME
 
@@ -95,7 +95,7 @@ triggers:
 =cut
 
 sub delete {
-  die;
+    die;
 }
 
 =head2 list
@@ -109,7 +109,7 @@ triggers:
 =cut
 
 sub list {
-  die;
+    die;
 }
 
 =head1 SEE ALSO

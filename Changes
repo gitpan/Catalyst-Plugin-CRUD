@@ -1,5 +1,9 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
+0.09 
+	- changed method name: config -> setting
+	- I18N skelton code changed at Catalyst::Helper::Model::CRUD
+
 0.08  Fri Aug 15 01:02:00 2006
 	- added I18N code
 

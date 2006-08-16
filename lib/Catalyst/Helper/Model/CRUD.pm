@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 NAME
 
@@ -40,7 +40,7 @@ sub encode {
     my ( $this, $str ) = @_;
     my @array = split( //, $str );
     my @list;
-    for ( my $i = 0; $i < scalar(@array); $i++ ) {
+    for ( my $i = 0 ; $i < scalar(@array) ; $i++ ) {
 
         # translate "\\n" to "。"
         if ( $array[$i] eq '\\' && $array[ $i + 1 ] eq 'n' ) {
@@ -81,7 +81,7 @@ translate hoge_fuga_master to HogeFugaMaster
 sub get_class_name {
     my ( $this, $str ) = @_;
     my @array = split( //, $str );
-    for ( my $i = 0; $i < scalar(@array); $i++ ) {
+    for ( my $i = 0 ; $i < scalar(@array) ; $i++ ) {
         if ( $i == 0 ) {
             $array[$i] = uc $array[$i];
         }
@@ -124,15 +124,15 @@ sub get_table {
     }
 }
 
-=head2 get_schema_index($array, $name)
+=head2 get_setting_index($array, $name)
 
-get appointed name's schema number
+get appointed name's setting number
 
 =cut
 
-sub get_schema_index {
+sub get_setting_index {
     my ( $this, $array, $name ) = @_;
-    for ( my $i = 0; $i < scalar( @{$array} ); $i++ ) {
+    for ( my $i = 0 ; $i < scalar( @{$array} ) ; $i++ ) {
         if ( $name eq $array->[$i]->{'name'} ) {
             return $i;
         }
@@ -194,11 +194,11 @@ sub mk_compclass {
     my $tree   = $parser->XMLin($file);
 
     # SQL・コントローラ・テンプレート用のディレクトリを作る
-    my $schema_dir     = sprintf( "%s/sql/schema",        $helper->{'base'} );
-    my $i18n_dir       = sprintf( "%s/I18N",              $helper->{'base'} );
+    my $setting_dir    = sprintf( "%s/sql/setting",       $helper->{'base'} );
+    my $i18n_dir       = sprintf( "%s/lib/%s/I18N",       $helper->{'base'}, $helper->{'app'} );
     my $controller_dir = sprintf( "%s/lib/%s/Controller", $helper->{'base'}, $helper->{'app'} );
     my $template_dir   = sprintf( "%s/root/template",     $helper->{'base'} );
-    $helper->mk_dir($schema_dir);
+    $helper->mk_dir($setting_dir);
     $helper->mk_dir($i18n_dir);
     $helper->mk_dir($controller_dir);
     $helper->mk_dir($template_dir);
@@ -231,7 +231,7 @@ sub mk_compclass {
 
         # 各テーブルの列一覧取得
         my @columns = @{ $table->{'COLUMNS'}->{'COLUMN'} }
-            if ref $table->{'COLUMNS'}->{'COLUMN'} eq 'ARRAY';
+          if ref $table->{'COLUMNS'}->{'COLUMN'} eq 'ARRAY';
 
         # 各テーブルのインデックス覧取得
         my %indices;
@@ -258,15 +258,15 @@ sub mk_compclass {
             }
         }
 
-        my @serials;    # シーケンス一覧
-        my @sqls;       # SQL一覧
-        my @schemas;    # スキーマ一覧
+        my @serials;     # シーケンス一覧
+        my @sqls;        # SQL一覧
+        my @settings;    # スキーマ一覧
         foreach my $column (@columns) {
             my $sql;
-            my @schema;
+            my @setting;
 
             # カラム名
-            push @schema, ( "        " . $column->{'ColName'} );
+            push @setting, ( "        " . $column->{'ColName'} );
 
             # 型
             if ( $column->{'AutoInc'} eq "1" ) {
@@ -274,85 +274,85 @@ sub mk_compclass {
                 # AutoInc="1" だったら「テーブル名_カラム名_seq」という
                 # テーブルを Postgresql が自動作成するのでその対応
                 $sql->{'type'} = "serial";
-                push @schema, "SERIAL";
+                push @setting, "SERIAL";
                 push @serials,
-                    sprintf( "GRANT ALL ON %s_%s_seq TO PUBLIC;\n", $table->{'Tablename'}, $column->{'ColName'} );
+                  sprintf( "GRANT ALL ON %s_%s_seq TO PUBLIC;\n", $table->{'Tablename'}, $column->{'ColName'} );
             }
             elsif ( $column->{'idDatatype'} eq '5' ) {
                 $sql->{'type'} = "int";
-                push @schema, "INTEGER";
+                push @setting, "INTEGER";
             }
             elsif ( $column->{'idDatatype'} eq '14' ) {
                 $sql->{'type'} = "date";
-                push @schema, "DATE";
+                push @setting, "DATE";
             }
             elsif ( $column->{'idDatatype'} eq '16' ) {
                 $sql->{'type'} = "timestamp with time zone";
-                push @schema, "TIMESTAMP with time zone";
+                push @setting, "TIMESTAMP with time zone";
             }
             elsif ( $column->{'idDatatype'} eq '20' ) {
                 $sql->{'type'} = "varchar(255)";
-                push @schema, "VARCHAR(255)";
+                push @setting, "VARCHAR(255)";
             }
             elsif ( $column->{'idDatatype'} eq '22' ) {
                 $sql->{'type'} = "bool";
-                push @schema, "BOOL";
+                push @setting, "BOOL";
             }
             elsif ( $column->{'idDatatype'} eq '28' ) {
                 $sql->{'type'} = "text";
-                push @schema, "TEXT";
+                push @setting, "TEXT";
             }
             else {
                 $sql->{'type'} = "text";
-                push @schema, "TEXT";
+                push @setting, "TEXT";
             }
 
             # 主キーかどうか
             if ( $column->{'PrimaryKey'} eq '1' ) {
                 $sql->{'primarykey'} = 1;
-                push @schema, "PRIMARY KEY";
+                push @setting, "PRIMARY KEY";
             }
             elsif ( 'id' eq lc( $column->{'ColName'} ) ) {
 
                 # id は自動的に主キーにする
                 $sql->{'primarykey'} = 1;
-                push @schema, "PRIMARY KEY";
+                push @setting, "PRIMARY KEY";
             }
 
             # デフォルト値
             if ( length( $column->{'DefaultValue'} ) > 0 ) {
                 $sql->{'default'} = $column->{'DefaultValue'};
-                push @schema, sprintf( "DEFAULT '%s'", $column->{'DefaultValue'} );
+                push @setting, sprintf( "DEFAULT '%s'", $column->{'DefaultValue'} );
             }
             elsif ( $column->{'idDatatype'} eq '14' ) {
 
                 # 日付は自動的に設定する
                 $sql->{'default'} = "('now'::text)::timestamp";
-                push @schema, "DEFAULT ('now'::text)::timestamp";
+                push @setting, "DEFAULT ('now'::text)::timestamp";
             }
             elsif ( $column->{'idDatatype'} eq '16' ) {
 
                 # 日時は自動的に設定する
                 $sql->{'default'} = "('now'::text)::timestamp";
-                push @schema, "DEFAULT ('now'::text)::timestamp";
+                push @setting, "DEFAULT ('now'::text)::timestamp";
             }
             elsif ( 'disable' eq lc( $column->{'ColName'} ) ) {
 
                 # disable は自動的に 0 にする
                 $sql->{'default'} = "0";
-                push @schema, "DEFAULT '0'";
+                push @setting, "DEFAULT '0'";
             }
 
             # NOT NULL 制約
             if ( $column->{'NotNull'} eq '1' ) {
                 $sql->{'notnull'} = 1;
-                push @schema, "NOT NULL";
+                push @setting, "NOT NULL";
             }
             elsif ( 'disable' eq lc( $column->{'ColName'} ) ) {
 
                 # disable は自動的に NOT NULL にする
                 $sql->{'notnull'} = 1;
-                push @schema, "NOT NULL";
+                push @setting, "NOT NULL";
             }
 
             # 参照制約
@@ -367,8 +367,8 @@ sub mk_compclass {
                     onupdate => 'cascade',
                     ondelete => 'cascade'
                 };
-                push @schema,
-                    sprintf( "CONSTRAINT ref_%s REFERENCES %s (id) ON DELETE cascade ON UPDATE cascade",
+                push @setting,
+                  sprintf( "CONSTRAINT ref_%s REFERENCES %s (id) ON DELETE cascade ON UPDATE cascade",
                     $column->{'ColName'}, $src_table->{'Tablename'} );
             }
 
@@ -376,15 +376,15 @@ sub mk_compclass {
             if ( 'id' eq lc( $column->{'ColName'} ) ) {
 
                 # id は自動的に ID にする
-                push @schema, '/* ID */';
+                push @setting, '/* ID */';
             }
             elsif ( 'disable' eq lc( $column->{'ColName'} ) ) {
 
                 # disable は自動的に 削除 にする
-                push @schema, '/* 削除 */';
+                push @setting, '/* 削除 */';
             }
             else {
-                push @schema, sprintf( "/* %s */", $this->encode( $column->{'Comments'} ) );
+                push @setting, sprintf( "/* %s */", $this->encode( $column->{'Comments'} ) );
             }
 
             # 列名の代入
@@ -413,16 +413,16 @@ sub mk_compclass {
             }
 
             push @sqls, $sql;
-            push @schemas, join( " ", @schema );
+            push @settings, join( " ", @setting );
         }
 
         # SQL出力
-        my $schema_vars;
-        $schema_vars->{'table'}   = $table->{'Tablename'};
-        $schema_vars->{'comment'} = $this->encode( $table->{'Comments'} );
-        $schema_vars->{'columns'} = join( ",\n", @schemas );
-        $schema_vars->{'serials'} = join( "", @serials );
-        $helper->render_file( 'schema_class', "$schema_dir/$table->{'Tablename'}.sql", $schema_vars );
+        my $setting_vars;
+        $setting_vars->{'table'}   = $table->{'Tablename'};
+        $setting_vars->{'comment'} = $this->encode( $table->{'Comments'} );
+        $setting_vars->{'columns'} = join( ",\n", @settings );
+        $setting_vars->{'serials'} = join( "", @serials );
+        $helper->render_file( 'setting_class', "$setting_dir/$table->{'Tablename'}.sql", $setting_vars );
 
         # コントローラ出力
         my $controller_vars;
@@ -478,7 +478,7 @@ at your option, any later version of Perl 5 you may have available.
 
 __DATA__
 
-__schema_class__
+__setting_class__
 DROP TABLE [% table %];
 
 -- [% comment %]
@@ -527,7 +527,7 @@ sub list : Local {
     $c->list($self);
 }
 
-sub config {
+sub setting {
     my ( $self, $c ) = @_;
     my $hash = {
         'name'     => '[% path_name %]',
@@ -612,11 +612,11 @@ __update_html__
 <table border="1">
 [- FOREACH sql = sqls --]
   <tr>
-    <td>[- sql.desc -]</td><td><input type="text" name="[- sql.name -]" value="[% c.stash.[- path_name -].[- sql.name -] %]"></td>
+    <td>[- sql.desc -]</td><td><input type="text" name="[- sql.name -]" size="25" value="[% c.stash.[- path_name -].[- sql.name -] %]"></td>
   </tr>
 [- END --]
   <tr>
-    <td colspan="2" align="center"><input type="submit" name="btn_create" value="[% c.loc('BUTTON_UPDATE') %]"></td>
+    <td colspan="2" align="center"><input type="submit" name="btn_update" value="[% c.loc('BUTTON_UPDATE') %]"></td>
   </tr>
 </table>
 </form>
@@ -650,24 +650,6 @@ __list_html__
 [% INCLUDE template/footer.html -%]
 
 __ja_po__
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
-msgid ""
-msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
-"Content-Transfer-Encoding: 8bit\n"
-
 msgid "TITLE_CREATE"
 msgstr "新規"
 
@@ -693,24 +675,6 @@ msgid "BUTTON_DELETE"
 msgstr "削除"
 
 __en_po__
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
-msgid ""
-msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
-"Content-Transfer-Encoding: 8bit\n"
-
 msgid "TITLE_CREATE"
 msgstr "New"
 
