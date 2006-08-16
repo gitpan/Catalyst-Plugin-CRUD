@@ -3,7 +3,7 @@ package Catalyst::Plugin::CRUD;
 use strict;
 use warnings;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =head1 NAME
 
@@ -23,7 +23,7 @@ Catalyst::Plugin::CRUD - CRUD (create/read/update/delete) Plugin for Catalyst
 
 =head1 DESCRIPTION
 
-This module define CRUD (create/read/update/delete) action interface.
+This module provides CRUD (create/read/update/delete) action.
 
  create: insert new record
  read:   retrieve record
@@ -39,7 +39,9 @@ None by default.
 
 =head2 create
 
-create action
+create action.
+
+if $c->stash->{create}->{error} is 1, then do not insert new recoed.
 
 triggers:
 
@@ -50,12 +52,53 @@ triggers:
 =cut
 
 sub create {
-    die;
+    my ( $c, $self ) = @_;
+    my $setting = $self->setting($c);
+    my @columns = @{ $setting->{columns} };
+
+    # insert new record
+    if ( $c->req->param('btn_create') ) {
+        my $hash;
+        for my $column (@columns) {
+            my $param = $c->req->param($column);
+            $hash->{$column} = $param
+              if ( defined $param && length($param) > 0 );
+        }
+        $self->call_trigger( 'create_before', $c, $hash );
+        unless ( $c->stash->{create}->{error} ) {
+            my $model = $c->model( $self->setting($c)->{model} )->create($hash);
+            $self->call_trigger( 'create_after', $c, $model );
+            return $c->res->redirect( $self->setting($c)->{default} );
+        }
+
+        # create error
+        else {
+            $self->call_trigger( 'input_before', $c );
+        }
+    }
+
+    # for /xxx/copy/yyy
+    elsif ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
+        my $model = $c->get_model($self, $c->req->args->[0]);
+        for my $item (@columns) {
+            if ( defined $model && $model->can($item) ) {
+                $c->req->params->{$item} = $model->$item;
+            }
+        }
+        $self->call_trigger( 'input_before', $c );
+    }
+
+    # initial input
+    else {
+        $self->call_trigger( 'input_before', $c );
+    }
+
+    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{create};
 }
 
 =head2 read
 
-read action
+read action.
 
 triggers:
 
@@ -64,12 +107,39 @@ triggers:
 =cut
 
 sub read {
-    die;
+    my ( $c, $self ) = @_;
+    my $setting = $self->setting($c);
+    my @columns = @{ $setting->{columns} };
+
+    # prepare read form
+    if ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
+        my $model = $c->get_model($self, $c->req->args->[0]);
+        if ( defined $model ) {
+            my $method = $columns[0];
+            $model->$method;
+            $c->stash->{ $self->setting($c)->{name} } = $model;
+            $self->call_trigger( 'read_before', $c );
+        }
+
+        # read error
+        else {
+            return $c->res->redirect( $self->setting($c)->{default} );
+        }
+    }
+
+    # read error
+    else {
+        return $c->res->redirect( $self->setting($c)->{default} );
+    }
+
+    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{read};
 }
 
 =head2 update
 
-update action
+update action.
+
+if $c->stash->{update}->{error} is 1, then do not update recoed.
 
 triggers:
 
@@ -80,12 +150,51 @@ triggers:
 =cut
 
 sub update {
-    die;
+    my ( $c, $self ) = @_;
+    my $setting = $self->setting($c);
+    my $primary = $setting->{primary};
+    my @columns = @{ $setting->{columns} };
+
+    # update already record
+    if ( $c->req->param('btn_update') ) {
+        my $model = $c->get_model($self, $c->req->param($primary));
+        for my $column (@columns) {
+            $model->$column( $c->req->param($column) )
+              if ( $model->can($column) );
+        }
+        $self->call_trigger( 'update_before', $c, $model );
+        unless ( $c->stash->{update}->{error} ) {
+            $model->update();
+            $self->call_trigger( 'update_after', $c, $model );
+            return $c->res->redirect( $self->setting($c)->{default} );
+        }
+
+        # update error
+        else {
+            $self->call_trigger( 'input_before', $c );
+        }
+    }
+
+    # prepare update form
+    elsif ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
+        my $model = $c->get_model($self, $c->req->args->[0]);
+        $c->stash->{ $self->setting($c)->{name} } = $model;
+        $self->call_trigger( 'input_before', $c );
+    }
+
+    # update error
+    else {
+        return $c->res->redirect( $self->setting($c)->{default} );
+    }
+
+    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{update};
 }
 
 =head2 delete
 
-delete action
+delete action.
+
+if $c->stash->{delete}->{error} is 1, then do not delete recoed.
 
 triggers:
 
@@ -95,7 +204,20 @@ triggers:
 =cut
 
 sub delete {
-    die;
+    my ( $c, $self ) = @_;
+    my $setting = $self->setting($c);
+
+    # delete record
+    if ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
+        my $model = $c->get_model($self, $c->req->args->[0]);
+        $self->call_trigger( 'delete_before', $c, $model );
+        unless ( $c->stash->{delete}->{error} ) {
+            $model->delete();
+            $self->call_trigger( 'delete_after', $c );
+        }
+    }
+
+    $c->res->redirect( $self->setting($c)->{default} );
 }
 
 =head2 list
@@ -108,20 +230,52 @@ triggers:
 
 =cut
 
+=head2 list
+
+list action.
+
+triggers:
+
+ $self->call_trigger( 'list_before', $c );
+
+=cut
+
 sub list {
+    my ( $c, $self ) = @_;
+    my $setting = $self->setting($c);
+    my @models  = $c->get_models($self);
+    $c->stash->{ $setting->{name} . 's' } = \@models;
+    $c->stash->{template} = $setting->{template}->{prefix} . $setting->{template}->{list};
+    $self->call_trigger( 'list_before', $c );
+}
+
+=head1 INTERNAL METHODS
+
+=head2 get_model($c,$self,$id)
+
+return model from $id. this method is implemented by sub class.
+
+=cut
+
+sub get_model {
+    die;
+}
+
+=cut
+
+=head2 get_models($c,$self)
+
+return all models. this method is implemented by sub class.
+
+=cut
+
+sub get_models {
     die;
 }
 
 =head1 SEE ALSO
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
+Catalyst
 
 =head1 AUTHOR
 

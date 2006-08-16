@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use base qw(Catalyst::Plugin::CRUD);
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 NAME
 
@@ -92,216 +92,57 @@ None by default.
 
 create action.
 
-if $c->stash->{create}->{error} is 1, then do not insert new recoed.
-
-triggers:
-
- $self->call_trigger( 'input_before', $c );
- $self->call_trigger( 'create_before', $c, $hash );
- $self->call_trigger( 'create_after', $c, $model );
-
-=cut
-
-sub create {
-    my ( $c, $self ) = @_;
-    my $setting = $self->setting($c);
-    my $primary = $setting->{primary};
-    my @columns = @{ $setting->{columns} };
-
-    # insert new record
-    if ( $c->req->param('btn_create') ) {
-        my $hash;
-        for my $column (@columns) {
-            my $param = $c->req->param($column);
-            $hash->{$column} = $param if ( defined $param && length($param) > 0 );
-        }
-        $self->call_trigger( 'create_before', $c, $hash );
-        unless ( $c->stash->{create}->{error} ) {
-            my $model = $c->model( $self->setting($c)->{model} )->create($hash);
-            $self->call_trigger( 'create_after', $c, $model );
-            return $c->res->redirect( $self->setting($c)->{default} );
-        }
-
-        # create error
-        else {
-            $self->call_trigger( 'input_before', $c );
-        }
-    }
-
-    # for /xxx/copy/yyy
-    elsif ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
-        my $model = $c->model( $self->setting($c)->{model} )->find( $primary => $c->req->args->[0] );
-        for my $item (@columns) {
-            if ( defined $model && $model->can($item) ) {
-                $c->req->params->{$item} = $model->$item;
-            }
-        }
-        $self->call_trigger( 'input_before', $c );
-    }
-
-    # initial input
-    else {
-        $self->call_trigger( 'input_before', $c );
-    }
-
-    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{create};
-}
-
 =head2 read
 
 read action.
-
-triggers:
-
- $self->call_trigger( 'read_before', $c );
-
-=cut
-
-sub read {
-    my ( $c, $self ) = @_;
-    my $setting = $self->setting($c);
-    my $primary = $setting->{primary};
-    my @columns = @{ $setting->{columns} };
-
-    # prepare read form
-    if ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
-        my $model = $c->model( $self->setting($c)->{model} )->find( $primary => $c->req->args->[0] );
-        if ( defined $model ) {
-            my $method = $columns[0];
-            $model->$method;
-            $c->stash->{ $self->setting($c)->{name} } = $model;
-            $self->call_trigger( 'read_before', $c );
-        }
-
-        # read error
-        else {
-            return $c->res->redirect( $self->setting($c)->{default} );
-        }
-    }
-
-    # read error
-    else {
-        return $c->res->redirect( $self->setting($c)->{default} );
-    }
-
-    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{read};
-}
 
 =head2 update
 
 update action.
 
-if $c->stash->{update}->{error} is 1, then do not update recoed.
-
-triggers:
-
- $self->call_trigger( 'input_before', $c );
- $self->call_trigger( 'update_before', $c, $model );
- $self->call_trigger( 'update_after', $c, $model );
-
-=cut
-
-sub update {
-    my ( $c, $self ) = @_;
-    my $setting = $self->setting($c);
-    my $primary = $setting->{primary};
-    my @columns = @{ $setting->{columns} };
-
-    # update already record
-    if ( $c->req->param('btn_update') ) {
-        my $model = $c->model( $self->setting($c)->{model} )->find( $primary => $c->req->param($primary) );
-        for my $column (@columns) {
-            $model->$column( $c->req->param($column) ) if ( $model->can($column) );
-        }
-        $self->call_trigger( 'update_before', $c, $model );
-        unless ( $c->stash->{update}->{error} ) {
-            $model->update();
-            $self->call_trigger( 'update_after', $c, $model );
-            return $c->res->redirect( $self->setting($c)->{default} );
-        }
-
-        # update error
-        else {
-            $self->call_trigger( 'input_before', $c );
-        }
-    }
-
-    # prepare update form
-    elsif ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
-        my $model = $c->model( $self->setting($c)->{model} )->find( $primary => $c->req->args->[0] );
-        $c->stash->{ $self->setting($c)->{name} } = $model;
-        $self->call_trigger( 'input_before', $c );
-    }
-
-    # update error
-    else {
-        return $c->res->redirect( $self->setting($c)->{default} );
-    }
-
-    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{update};
-}
-
 =head2 delete
 
 delete action.
-
-if $c->stash->{delete}->{error} is 1, then do not delete recoed.
-
-triggers:
-
- $self->call_trigger( 'delete_before', $c, $model );
- $self->call_trigger( 'delete_after', $c );
-
-=cut
-
-sub delete {
-    my ( $c, $self ) = @_;
-    my $setting = $self->setting($c);
-    my $primary = $setting->{primary};
-
-    # delete record
-    if ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
-        my $model = $c->model( $self->setting($c)->{model} )->find( $primary => $c->req->args->[0] );
-        $self->call_trigger( 'delete_before', $c, $model );
-        unless ( $c->stash->{delete}->{error} ) {
-            $model->delete();
-            $self->call_trigger( 'delete_after', $c );
-        }
-    }
-
-    $c->res->redirect( $self->setting($c)->{default} );
-}
 
 =head2 list
 
 list action.
 
-triggers:
+=head1 INTERNAL METHODS
 
- $self->call_trigger( 'list_before', $c );
+=head2 get_model
+
+return model from $id.
 
 =cut
 
-sub list {
+sub get_model {
+    my ( $c, $self, $id ) = @_;
+    my $setting = $self->setting($c);
+    my $primary = $setting->{primary};
+    my $model   = $c->model( $self->setting($c)->{model} )->find( $primary => $id );
+    return $model;
+}
+
+=cut
+
+=head2 get_models
+
+return all models.
+
+=cut
+
+sub get_models {
     my ( $c, $self ) = @_;
     my $setting = $self->setting($c);
     my $primary = $setting->{primary};
     my @models  = $c->model( $setting->{model} )->search( { disable => 0 }, { order_by => $primary } );
-    $c->stash->{ $setting->{name} . 's' } = \@models;
-    $c->stash->{template} = $setting->{template}->{prefix} . $setting->{template}->{list};
-    $self->call_trigger( 'list_before', $c );
+    return @models;
 }
 
 =head1 SEE ALSO
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
+Catalyst::Plugin::CRUD, Class::DBI, DBIx::Class
 
 =head1 AUTHOR
 
