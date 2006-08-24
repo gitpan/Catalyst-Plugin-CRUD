@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 NAME
 
@@ -550,23 +550,305 @@ sub setting {
 1;
 
 __header_html__
-<html>
-<head>
-<title>[% app_name %]</title>
-</head>
-[% app_name %]
-<hr/>
-<body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+  <head>
+    <meta http-equiv="content-type" content="application/xhtml+xml; charset=euc-jp" />
+    
+    <title>[% app_name %]</title>
+    
+    <style type="text/css">
+    <!--
+    /* ###### Browser-specific Styles ###### */
+    
+    /* For IE & Mozilla-based browsers: */
+    
+    .LHS {
+      margin-left: 2.5mm;
+      float: left;
+      clear: left;
+    }
+    
+    .RHS {
+      margin-right: 2.5mm;
+      float: right;
+      clear: right;
+    }
+    
+    /* For Mozilla-based (CSS2-fully complaint) browsers only: */
+    
+    [class~="LHS"] {
+      margin-left: 5mm;
+    }
+    
+    [class~="RHS"] {
+      margin-right: 5mm;
+    }
+    
+    /* ###### Body Text ###### */
+    
+    body {
+      background-color: white;
+      color: black;
+      font-family: verdana, tahoma, helvetica, arial, sans-serif;
+      font-size: 95%;
+      margin: 0;
+      background-repeat: no-repeat;
+      background-attachment: scroll;
+    }
+    
+    h1, h2, h3 {
+      font-family: "trebuchet ms", tahoma, sans-serif;
+    }
+    
+    h1 {
+      font-weight: bold;
+      font-size: 150%;
+      border-bottom-style: solid;
+      border-bottom-width: 1px;
+      padding-bottom: 0.5ex;
+    }
+    
+    img {
+      border: none;
+    }
+    
+    q {
+      font-family: tahoma, verdana, helvetica, arial, sans-serif;
+      font-weight: bold;
+      border-style: dotted;
+      border-width: 2px;
+      margin: 0 1em 1ex 1em;
+      padding: 0.5ex 0.5ex 0.5ex 1ex;
+      width: 9em;
+      float: left;
+    }
+    
+    acronym {
+      border-bottom-style: dotted;
+      border-bottom-width: 1px;
+      cursor: help;
+    }
+    
+    code {
+      font-family: "lucida console", monospace;
+      font-size: 90%;
+    }
+    
+    dt {
+      font-weight: bold;
+    }
+    
+    dd {
+      padding-bottom: 1.5em;
+    }
+    
+    #bodyText {
+      text-align: justify;
+      line-height: 1.5em;
+      margin: 10mm 5mm 0 14em;
+      padding: 0 1em 1ex 1em;
+    }
+    
+    #bodyText p {
+      padding-bottom: 2ex;
+    }
+    
+    #bodyText a {
+      text-decoration: none;
+      border-bottom-style: solid;
+      border-bottom-width: 1px;
+    }
+    
+    #bodyText a:hover {
+      border-bottom: none;
+    }
+    
+    #bodyText .topOfPage {
+      font-size: 90%;
+      font-weight: bold;
+      font-variant: small-caps;
+      text-decoration: none;
+      border: none;
+      padding-left: 1ex;
+      padding-right: 1ex;
+      float: right;
+    }
+    
+    .smallCaps {
+      font-variant: small-caps;
+    }
+    
+    /* ###### Header ###### */
+    
+    #header {
+      border-bottom-style: solid;
+      border-bottom-width: 2px;
+      height: 7.5em;
+      margin-bottom: 5mm;
+      padding: 0 2.5mm 0 5mm;
+      background-repeat: no-repeat;
+    }
+    
+    .headerTitle {
+      font-size: 300%;
+      font-weight: bold;
+      line-height: 2em;
+    }
+    
+    .menuBar {
+      float: left;
+    }
+    
+    .locBar {
+      float: right;
+    }
+    
+    .menuBar *, .locBar * {
+      text-decoration: none;
+      font-weight: bold;
+      padding-right: 1ex;
+    }
+    
+    .menuBar a:hover, .locBar a:hover {
+      text-decoration: underline;
+    }
+    
+    /* ###### Side Box ###### */
+    
+    .sideBox {
+      border-style: solid none solid none;
+      border-width: 2px 0 2px 0;
+      width: 11em;
+      margin-top: 5mm;
+    }
+    
+    .sideBox div {
+      font-weight: bold;
+      border-bottom-style: dashed;
+      border-bottom-width: 1px;
+      padding: 0.5ex 0.5em 0.5ex 0.75em;
+    }
+    
+    .sideBox a, .sideBox a:hover, .sideBox span {
+      color: black;
+      text-decoration: none;
+      line-height: 1.25em;
+      display: block;
+      padding: 1.25ex 0.5em 1.25ex 0.75em;
+    }
+    
+    .sideBox .thisPage {
+      font-weight: bold;
+    }
+    
+    /* ###### Footer ###### */
+    
+    #footer {
+      padding-top: 0.75ex;
+      padding-bottom: 0.75ex;
+      clear: left;
+    }
+    
+    #footer div {
+      font-size: 85%;
+      line-height: 1.25em;
+      text-align: right;
+      padding-right: 3mm;
+    }
+    
+    #footer a:hover {
+      text-decoration: none;
+    }
+    
+    .footerLHS {
+      float: left;
+      clear: left;
+      padding-left: 3mm;
+    }
+    
+    /* ###### General Color Scheme ###### */
+    
+    h1, h2, h3, q, #header div, #header div *, #footer *, .headerTitle, .sideBox div, .topOfPage
+    { /* Text Color: */  color: #4080ff; }
+    
+    h1, q,  #header, .sideBox, .sideBox div
+    { /* Border Color: */  border-color: #0080ff; }
+    
+    #header, .sideBox div, .sideBox a:hover, .sideBox .thisPage
+    { /* Background Color (darker): */  background-color: #e8f0ff; }
+    
+    q, .sideBox a, .sideBox span
+    { /* Background Color (lighter): */  background-color: #fafcff; }
+    
+    /* ###### Special Colors ###### */
+    
+    acronym {
+      color: blue;
+      border-bottom-color: blue;
+    }
+    
+    #bodyText a {
+      color: #4080ff;
+      border-bottom-color: #4080ff;
+    }
+    
+    #footer {
+      background-color: #f2f6ff;
+    }
+    -->
+    </style>
+  </head>
+
+  <body>
+    <div id="top"></div>
+
+    <!-- ###### Header ###### -->
+
+    <div id="header">
+      <span class="headerTitle">[% app_name %]</span>
+      <div class="menuBar">
+        <a href="/">Home</a>|
+        <a href="#">Menu1</a>|
+        <a href="#">Menu2</a>
+      </div>
+    </div>
+
+    <!-- ###### Side Boxes ###### -->
+
+    <div class="sideBox LHS">
+      <div>SubMenu</div>
+      <a href="#">SubMenu1</a>
+      <a href="#">SbuMenu2</a>
+    </div>
+
+    <!-- ###### Body Text ###### -->
+
+    <div id="bodyText">
 
 __footer_html__
-<hr/>
-<div align="right">copyright (C) xxxx</div>
-</body>
+    </div>
+    
+    <!-- ###### Footer ###### -->
+
+    <div id="footer">
+      <div class="footerLHS">
+        <a href="#">SiteMap</a>
+      </div>
+      
+      <div>
+        Copyright (C) 20XX xxxx yyyy.
+      </div>
+    </div>
+  </body>
 </html>
 
 __create_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
+<a class="topOfPage" href="#top" title="Top Of Page">top</a>
 <h1>[- comment -][% c.loc('TITLE_CREATE') %]</h1>
 [% IF c.stash.create.error -%]
 <font color="red">[% c.stash.create.message %]</font>
@@ -588,10 +870,12 @@ __create_html__
 __read_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
+<a class="topOfPage" href="#top" title="Top Of Page">top</a>
 <h1>[- comment -][% c.loc('TITLE_READ') %]</h1>
 
 <form>
-<input type="button" name="btn_update" value="[% c.loc('TITLE_UPDATE') %]" onclick="javascript:window.location='/[- path_name -]/update/[% c.stash.[- path_name -].[- primary -] %]';">
+  <input type="button" name="btn_update" value="[% c.loc('TITLE_UPDATE') %]" onclick="javascript:window.location='/[- path_name -]/update/[% c.stash.[- path_name -].[- primary -] %]';"><br/>
+  <br/>
 </form>
 
 <table border="1">
@@ -606,6 +890,7 @@ __read_html__
 __update_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
+<a class="topOfPage" href="#top" title="Top Of Page">top</a>
 <h1>[- comment -][% c.loc('TITLE_UPDATE') %]</h1>
 
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
@@ -625,10 +910,12 @@ __update_html__
 __list_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
+<a class="topOfPage" href="#top" title="Top Of Page">top</a>
 <h1>[- comment -][% c.loc('TITLE_LIST') %]</h1>
 
 <form>
-<input type="button" name="btn_create" value="[% c.loc('TITLE_CREATE') %]" onclick="javascript:window.location='/[- path_name -]/create';">
+  <input type="button" name="btn_create" value="[% c.loc('TITLE_CREATE') %]" onclick="javascript:window.location='/[- path_name -]/create';"><br/>
+  <br/>
 </form>
 
 <table border="1">
