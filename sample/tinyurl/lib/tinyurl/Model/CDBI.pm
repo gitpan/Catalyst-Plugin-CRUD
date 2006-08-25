@@ -5,7 +5,7 @@ use base 'Catalyst::Model::CDBI';
 use Class::DBI::AbstractSearch ;
 
 __PACKAGE__->config(
-    dsn           => 'dbi:Pg:dbname=tinyurl;host=localhost;port=5432;',
+    dsn           => 'dbi:Pg:dbname=tinyurl_shimizu;host=ookami;port=5432;',
     user          => 'shimizu',
     password      => 'hogehoge',
     options       => { AutoCommit => 1 },

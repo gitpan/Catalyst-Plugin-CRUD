@@ -1,24 +1,24 @@
-msgid "TITLE_CREATE"
-msgstr "New"
+msgid "New"
+msgstr ""
 
-msgid "TITLE_READ"
-msgstr "Detail"
+msgid "Detail"
+msgstr ""
 
-msgid "TITLE_UPDATE"
-msgstr "Edit"
+msgid "Edit"
+msgstr ""
 
-msgid "TITLE_DELETE"
-msgstr "Delete"
+msgid "Delete"
+msgstr ""
 
-msgid "TITLE_LIST"
-msgstr "List"
+msgid "List"
+msgstr ""
 
-msgid "BUTTON_CREATE"
-msgstr "Add"
+msgid "Add"
+msgstr ""
 
-msgid "BUTTON_UPDATE"
-msgstr "Update"
+msgid "Update"
+msgstr ""
 
-msgid "BUTTON_DELETE"
-msgstr "Delete"
+msgid "Delete"
+msgstr ""
 

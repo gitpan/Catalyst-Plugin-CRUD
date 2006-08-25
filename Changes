@@ -1,5 +1,9 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
+0.12 Fri Aug 25 10:38:00 2006
+	- changed resource file at Catalyst::Helper::Model::CRUD
+	- changed resource file at sample application
+
 0.11 Fri Aug 25 07:49:00 2006
 	- added CSS at Catalyst::Helper::Model::CRUD
 

@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 NAME
 
@@ -849,7 +849,7 @@ __create_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
 <a class="topOfPage" href="#top" title="Top Of Page">top</a>
-<h1>[- comment -][% c.loc('TITLE_CREATE') %]</h1>
+<h1>[- comment -][% c.loc('New') %]</h1>
 [% IF c.stash.create.error -%]
 <font color="red">[% c.stash.create.message %]</font>
 [% END -%]
@@ -861,7 +861,7 @@ __create_html__
   </tr>
 [- END --]
   <tr>
-    <td colspan="2" align="center"><input type="submit" name="btn_create" value="[% c.loc('BUTTON_CREATE') %]"></td>
+    <td colspan="2" align="center"><input type="submit" name="btn_create" value="[% c.loc('Add') %]"></td>
   </tr>
 </table>
 </form>
@@ -871,10 +871,10 @@ __read_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
 <a class="topOfPage" href="#top" title="Top Of Page">top</a>
-<h1>[- comment -][% c.loc('TITLE_READ') %]</h1>
+<h1>[- comment -][% c.loc('Detail') %]</h1>
 
 <form>
-  <input type="button" name="btn_update" value="[% c.loc('TITLE_UPDATE') %]" onclick="javascript:window.location='/[- path_name -]/update/[% c.stash.[- path_name -].[- primary -] %]';"><br/>
+  <input type="button" name="btn_update" value="[% c.loc('Edit') %]" onclick="javascript:window.location='/[- path_name -]/update/[% c.stash.[- path_name -].[- primary -] %]';"><br/>
   <br/>
 </form>
 
@@ -891,7 +891,7 @@ __update_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
 <a class="topOfPage" href="#top" title="Top Of Page">top</a>
-<h1>[- comment -][% c.loc('TITLE_UPDATE') %]</h1>
+<h1>[- comment -][% c.loc('Edit') %]</h1>
 
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
 <table border="1">
@@ -901,7 +901,7 @@ __update_html__
   </tr>
 [- END --]
   <tr>
-    <td colspan="2" align="center"><input type="submit" name="btn_update" value="[% c.loc('BUTTON_UPDATE') %]"></td>
+    <td colspan="2" align="center"><input type="submit" name="btn_update" value="[% c.loc('Update') %]"></td>
   </tr>
 </table>
 </form>
@@ -911,78 +911,78 @@ __list_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
 <a class="topOfPage" href="#top" title="Top Of Page">top</a>
-<h1>[- comment -][% c.loc('TITLE_LIST') %]</h1>
+<h1>[- comment -][% c.loc('List') %]</h1>
 
 <form>
-  <input type="button" name="btn_create" value="[% c.loc('TITLE_CREATE') %]" onclick="javascript:window.location='/[- path_name -]/create';"><br/>
+  <input type="button" name="btn_create" value="[% c.loc('New') %]" onclick="javascript:window.location='/[- path_name -]/create';"><br/>
   <br/>
 </form>
 
 <table border="1">
 <tr>
   <th>ID</th>
-  <th>[% c.loc('TITLE_READ') %]</th>
-  <th>[% c.loc('TITLE_UPDATE') %]</th>
-  <th>[% c.loc('TITLE_DELETE') %]</th>
+  <th>[% c.loc('Detail') %]</th>
+  <th>[% c.loc('Edit') %]</th>
+  <th>[% c.loc('Delete') %]</th>
 </tr>
 [% FOREACH [- path_name -] = c.stash.[- path_name -]s -%]
 <tr>
   <td>[% [- path_name -].[- primary -] %]</td>
-  <td><a href="/[- path_name -]/read/[% [- path_name -].[- primary -] %]">[% c.loc('TITLE_READ') %]</a></td>
-  <td><a href="/[- path_name -]/update/[% [- path_name -].[- primary -] %]">[% c.loc('TITLE_UPDATE') %]</a></td>
-  <td><a href="/[- path_name -]/delete/[% [- path_name -].[- primary -] %]">[% c.loc('TITLE_DELETE') %]</a></td>
+  <td><a href="/[- path_name -]/read/[% [- path_name -].[- primary -] %]">[% c.loc('Detail') %]</a></td>
+  <td><a href="/[- path_name -]/update/[% [- path_name -].[- primary -] %]">[% c.loc('Edit') %]</a></td>
+  <td><a href="/[- path_name -]/delete/[% [- path_name -].[- primary -] %]">[% c.loc('Delete') %]</a></td>
 </tr>
 [% END -%]
 </table>
 [% INCLUDE template/footer.html -%]
 
 __ja_po__
-msgid "TITLE_CREATE"
+msgid "New"
 msgstr "新規"
 
-msgid "TITLE_READ"
+msgid "Detail"
 msgstr "詳細"
 
-msgid "TITLE_UPDATE"
+msgid "Edit"
 msgstr "編集"
 
-msgid "TITLE_DELETE"
+msgid "Delete"
 msgstr "削除"
 
-msgid "TITLE_LIST"
+msgid "List"
 msgstr "一覧"
 
-msgid "BUTTON_CREATE"
+msgid "Add"
 msgstr "追加"
 
-msgid "BUTTON_UPDATE"
+msgid "Update"
 msgstr "更新"
 
-msgid "BUTTON_DELETE"
+msgid "Delete"
 msgstr "削除"
 
 __en_po__
-msgid "TITLE_CREATE"
-msgstr "New"
+msgid "New"
+msgstr ""
 
-msgid "TITLE_READ"
-msgstr "Detail"
+msgid "Detail"
+msgstr ""
 
-msgid "TITLE_UPDATE"
-msgstr "Edit"
+msgid "Edit"
+msgstr ""
 
-msgid "TITLE_DELETE"
-msgstr "Delete"
+msgid "Delete"
+msgstr ""
 
-msgid "TITLE_LIST"
-msgstr "List"
+msgid "List"
+msgstr ""
 
-msgid "BUTTON_CREATE"
-msgstr "Add"
+msgid "Add"
+msgstr ""
 
-msgid "BUTTON_UPDATE"
-msgstr "Update"
+msgid "Update"
+msgstr ""
 
-msgid "BUTTON_DELETE"
-msgstr "Delete"
+msgid "Delete"
+msgstr ""
 

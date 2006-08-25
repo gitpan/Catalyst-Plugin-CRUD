@@ -1,24 +1,24 @@
-msgid "TITLE_CREATE"
+msgid "New"
 msgstr "新規"
 
-msgid "TITLE_READ"
+msgid "Detail"
 msgstr "詳細"
 
-msgid "TITLE_UPDATE"
+msgid "Edit"
 msgstr "編集"
 
-msgid "TITLE_DELETE"
+msgid "Delete"
 msgstr "削除"
 
-msgid "TITLE_LIST"
+msgid "List"
 msgstr "一覧"
 
-msgid "BUTTON_CREATE"
+msgid "Add"
 msgstr "追加"
 
-msgid "BUTTON_UPDATE"
+msgid "Update"
 msgstr "更新"
 
-msgid "BUTTON_DELETE"
+msgid "Delete"
 msgstr "削除"
 

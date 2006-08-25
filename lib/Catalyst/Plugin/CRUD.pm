@@ -3,7 +3,7 @@ package Catalyst::Plugin::CRUD;
 use strict;
 use warnings;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 =head1 NAME
 
@@ -258,7 +258,7 @@ return model from $id. this method is implemented by sub class.
 =cut
 
 sub get_model {
-    die;
+    die 'this method must be overrode in the subclass.';
 }
 
 =cut
@@ -270,7 +270,7 @@ return all models. this method is implemented by sub class.
 =cut
 
 sub get_models {
-    die;
+    die 'this method must be overrode in the subclass.';
 }
 
 =head1 SEE ALSO
