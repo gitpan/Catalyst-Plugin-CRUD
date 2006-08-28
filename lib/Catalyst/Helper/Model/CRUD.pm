@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 NAME
 
@@ -194,11 +194,11 @@ sub mk_compclass {
     my $tree   = $parser->XMLin($file);
 
     # SQL・コントローラ・テンプレート用のディレクトリを作る
-    my $setting_dir    = sprintf( "%s/sql/setting",       $helper->{'base'} );
+    my $schema_dir     = sprintf( "%s/sql/schema",        $helper->{'base'} );
     my $i18n_dir       = sprintf( "%s/lib/%s/I18N",       $helper->{'base'}, $helper->{'app'} );
     my $controller_dir = sprintf( "%s/lib/%s/Controller", $helper->{'base'}, $helper->{'app'} );
     my $template_dir   = sprintf( "%s/root/template",     $helper->{'base'} );
-    $helper->mk_dir($setting_dir);
+    $helper->mk_dir($schema_dir);
     $helper->mk_dir($i18n_dir);
     $helper->mk_dir($controller_dir);
     $helper->mk_dir($template_dir);
@@ -222,7 +222,9 @@ sub mk_compclass {
     $limit{$_} = 1 foreach (@limited_file);
 
     foreach my $table (@tables) {
-        my $class_name = $this->get_class_name( $table->{'Tablename'} );
+        my $model_name = $this->get_class_name( $table->{'Tablename'} );
+        my $class_name = $model_name;
+        $class_name =~ s/Master//g;
 
         # 指定したモジュールのみ
         if ( scalar @limited_file ) {
@@ -422,13 +424,14 @@ sub mk_compclass {
         $setting_vars->{'comment'} = $this->encode( $table->{'Comments'} );
         $setting_vars->{'columns'} = join( ",\n", @settings );
         $setting_vars->{'serials'} = join( "", @serials );
-        $helper->render_file( 'setting_class', "$setting_dir/$table->{'Tablename'}.sql", $setting_vars );
+        $helper->render_file( 'schema_sql', "$schema_dir/$table->{'Tablename'}.sql", $setting_vars );
 
         # コントローラ出力
         my $controller_vars;
         $controller_vars->{'app_name'}   = $helper->{'app'};
         $controller_vars->{'path_name'}  = lc $class_name;
-        $controller_vars->{'model_name'} = $helper->{'name'};
+        $controller_vars->{'base_name'}  = $helper->{'name'};
+        $controller_vars->{'model_name'} = $model_name;
         $controller_vars->{'class_name'} = $class_name;
         $controller_vars->{'comment'}    = $this->encode( $table->{'Comments'} );
         $controller_vars->{'primary'}    = $this->get_primary(@sqls);
@@ -439,13 +442,17 @@ sub mk_compclass {
         # テンプレート出力
         my $path_name = lc $class_name;
         $helper->mk_dir("$template_dir/$path_name");
-        $helper->render_file( 'header_html', "$template_dir/header.html",            $controller_vars );
-        $helper->render_file( 'footer_html', "$template_dir/footer.html",            $controller_vars );
         $helper->render_file( 'create_html', "$template_dir/$path_name/create.html", $controller_vars );
         $helper->render_file( 'read_html',   "$template_dir/$path_name/read.html",   $controller_vars );
         $helper->render_file( 'update_html', "$template_dir/$path_name/update.html", $controller_vars );
         $helper->render_file( 'list_html',   "$template_dir/$path_name/list.html",   $controller_vars );
     }
+
+    # ヘッダー・フッター出力
+    my $header_footer_vars;
+    $header_footer_vars->{'app_name'} = $helper->{'app'};
+    $helper->render_file( 'header_html', "$template_dir/header.html", $header_footer_vars );
+    $helper->render_file( 'footer_html', "$template_dir/footer.html", $header_footer_vars );
 
     # 言語ファイル出力
     $helper->render_file( 'ja_po', "$i18n_dir/ja.po" );
@@ -478,7 +485,7 @@ at your option, any later version of Perl 5 you may have available.
 
 __DATA__
 
-__setting_class__
+__schema_sql__
 DROP TABLE [% table %];
 
 -- [% comment %]
@@ -502,25 +509,25 @@ sub default : Private {
     $c->forward('list');
 }
 
-#sub create : Local {
-#    my ( $self, $c ) = @_;
-#    $c->create($self);
-#}
+sub create : Local {
+    my ( $self, $c ) = @_;
+    $c->create($self);
+}
 
-#sub read : Local {
-#    my ( $self, $c ) = @_;
-#    $c->read($self);
-#}
+sub read : Local {
+    my ( $self, $c ) = @_;
+    $c->read($self);
+}
 
-#sub update : Local {
-#    my ( $self, $c ) = @_;
-#    $c->update($self);
-#}
+sub update : Local {
+    my ( $self, $c ) = @_;
+    $c->update($self);
+}
 
-#sub delete : Local {
-#    my ( $self, $c ) = @_;
-#    $c->delete($self);
-#}
+sub delete : Local {
+    my ( $self, $c ) = @_;
+    $c->delete($self);
+}
 
 sub list : Local {
     my ( $self, $c ) = @_;
@@ -531,7 +538,7 @@ sub setting {
     my ( $self, $c ) = @_;
     my $hash = {
         'name'     => '[% path_name %]',
-        'model'    => '[% model_name %]::[% class_name %]',
+        'model'    => '[% base_name %]::[% model_name %]Master',
         'primary'  => '[% primary %]',
         'columns'  => [qw([% columns %])],
         'default'  => '/[% path_name %]/list',
