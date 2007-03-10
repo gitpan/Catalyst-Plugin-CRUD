@@ -42,7 +42,7 @@ sub encode {
     my @list;
     for ( my $i = 0 ; $i < scalar(@array) ; $i++ ) {
 
-        # translate "\\n" to "¡£"
+        # translate "\\n" to "ã€‚"
         if ( $array[$i] eq '\\' && $array[ $i + 1 ] eq 'n' ) {
             push @list, 129;
             push @list, 66;
@@ -183,17 +183,17 @@ sub mk_compclass {
 
     print "==========================================================\n";
 
-    # ¥Õ¥¡¥¤¥ëÌ¾¤ÏÉ¬¿Ü
+    # ãƒ•ã‚¡ã‚¤ãƒ«åã¯å¿…é ˆ
     unless ($file) {
         die "usage: ./myapp_create.pl model CRUD CRUD [DBDesigner 4 File] [some modules]\n";
         return 1;
     }
 
-    # XML¥Õ¥¡¥¤¥ë²òÀÏ
+    # XMLãƒ•ã‚¡ã‚¤ãƒ«è§£æ
     my $parser = new XML::Simple();
     my $tree   = $parser->XMLin($file);
 
-    # SQL¡¦¥³¥ó¥È¥í¡¼¥é¡¦¥Æ¥ó¥×¥ì¡¼¥ÈÍÑ¤Î¥Ç¥£¥ì¥¯¥È¥ê¤òºî¤ë
+    # SQLãƒ»ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ»ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆç”¨ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½œã‚‹
     my $schema_dir     = sprintf( "%s/sql/schema",        $helper->{'base'} );
     my $i18n_dir       = sprintf( "%s/lib/%s/I18N",       $helper->{'base'}, $helper->{'app'} );
     my $controller_dir = sprintf( "%s/lib/%s/Controller", $helper->{'base'}, $helper->{'app'} );
@@ -203,7 +203,7 @@ sub mk_compclass {
     $helper->mk_dir($controller_dir);
     $helper->mk_dir($template_dir);
 
-    # ¥ê¥ì¡¼¥·¥ç¥ó¤È¥Æ¡¼¥Ö¥ë°ìÍ÷¤ò¼èÆÀ¤¹¤ë
+    # ãƒªãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã¨ãƒ†ãƒ¼ãƒ–ãƒ«ä¸€è¦§ã‚’å–å¾—ã™ã‚‹
     if ( ref $tree->{'METADATA'}->{'RELATIONS'}->{'RELATION'} eq 'ARRAY' ) {
         @relations = @{ $tree->{'METADATA'}->{'RELATIONS'}->{'RELATION'} };
     }
@@ -217,7 +217,7 @@ sub mk_compclass {
         push( @tables, $tree->{'METADATA'}->{'TABLES'}->{'TABLE'} );
     }
 
-    # »ØÄê¤·¤¿¥â¥¸¥å¡¼¥ë¤Î¤ß
+    # æŒ‡å®šã—ãŸãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®ã¿
     my %limit;
     $limit{$_} = 1 foreach (@limited_file);
 
@@ -226,24 +226,24 @@ sub mk_compclass {
         my $class_name = $model_name;
         $class_name =~ s/Master//g;
 
-        # »ØÄê¤·¤¿¥â¥¸¥å¡¼¥ë¤Î¤ß
+        # æŒ‡å®šã—ãŸãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®ã¿
         if ( scalar @limited_file ) {
             next unless ( $limit{$class_name} );
         }
 
-        # ³Æ¥Æ¡¼¥Ö¥ë¤ÎÎó°ìÍ÷¼èÆÀ
+        # å„ãƒ†ãƒ¼ãƒ–ãƒ«ã®åˆ—ä¸€è¦§å–å¾—
         my @columns = @{ $table->{'COLUMNS'}->{'COLUMN'} }
           if ref $table->{'COLUMNS'}->{'COLUMN'} eq 'ARRAY';
 
-        # ³Æ¥Æ¡¼¥Ö¥ë¤Î¥¤¥ó¥Ç¥Ã¥¯¥¹Í÷¼èÆÀ
+        # å„ãƒ†ãƒ¼ãƒ–ãƒ«ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹è¦§å–å¾—
         my %indices;
         if ( ref( $table->{'INDICES'}->{'INDEX'} ) eq 'HASH' ) {
 
-            # Í×ÁÇ°ì¸Ä¤Î¤È¤­¤Ï¥Ï¥Ã¥·¥å¤Ë¤Ê¤Ã¤Æ¤·¤Ş¤¦¤Î¤Ç¤½¤ÎÂĞºö
+            # è¦ç´ ä¸€å€‹ã®ã¨ãã¯ãƒãƒƒã‚·ãƒ¥ã«ãªã£ã¦ã—ã¾ã†ã®ã§ãã®å¯¾ç­–
             my $key = $table->{'INDICES'}->{'INDEX'}->{'INDEXCOLUMNS'}->{'INDEXCOLUMN'}->{'idColumn'};
             my $val = $table->{'INDICES'}->{'INDEX'}->{'FKRefDef_Obj_id'};
 
-            # ¼ç¥­¡¼¤ÏÌµ»ë¤¹¤ë
+            # ä¸»ã‚­ãƒ¼ã¯ç„¡è¦–ã™ã‚‹
             unless ( $val eq '-1' ) {
                 $indices{$key} = $val;
             }
@@ -253,28 +253,28 @@ sub mk_compclass {
                 my $key = $index->{'INDEXCOLUMNS'}->{'INDEXCOLUMN'}->{'idColumn'};
                 my $val = $index->{'FKRefDef_Obj_id'};
 
-                # ¼ç¥­¡¼¤ÏÌµ»ë¤¹¤ë
+                # ä¸»ã‚­ãƒ¼ã¯ç„¡è¦–ã™ã‚‹
                 unless ( $val eq '-1' ) {
                     $indices{$key} = $val;
                 }
             }
         }
 
-        my @serials;     # ¥·¡¼¥±¥ó¥¹°ìÍ÷
-        my @sqls;        # SQL°ìÍ÷
-        my @settings;    # ¥¹¥­¡¼¥Ş°ìÍ÷
+        my @serials;     # ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ä¸€è¦§
+        my @sqls;        # SQLä¸€è¦§
+        my @settings;    # ã‚¹ã‚­ãƒ¼ãƒä¸€è¦§
         foreach my $column (@columns) {
             my $sql;
             my @setting;
 
-            # ¥«¥é¥àÌ¾
+            # ã‚«ãƒ©ãƒ å
             push @setting, ( "        " . $column->{'ColName'} );
 
-            # ·¿
+            # å‹
             if ( $column->{'AutoInc'} eq "1" ) {
 
-                # AutoInc="1" ¤À¤Ã¤¿¤é¡Ö¥Æ¡¼¥Ö¥ëÌ¾_¥«¥é¥àÌ¾_seq¡×¤È¤¤¤¦
-                # ¥Æ¡¼¥Ö¥ë¤ò Postgresql ¤¬¼«Æ°ºîÀ®¤¹¤ë¤Î¤Ç¤½¤ÎÂĞ±ş
+                # AutoInc="1" ã ã£ãŸã‚‰ã€Œãƒ†ãƒ¼ãƒ–ãƒ«å_ã‚«ãƒ©ãƒ å_seqã€ã¨ã„ã†
+                # ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’ Postgresql ãŒè‡ªå‹•ä½œæˆã™ã‚‹ã®ã§ãã®å¯¾å¿œ
                 $sql->{'type'} = "serial";
                 push @setting, "SERIAL";
                 push @serials,
@@ -309,55 +309,55 @@ sub mk_compclass {
                 push @setting, "TEXT";
             }
 
-            # ¼ç¥­¡¼¤«¤É¤¦¤«
+            # ä¸»ã‚­ãƒ¼ã‹ã©ã†ã‹
             if ( $column->{'PrimaryKey'} eq '1' ) {
                 $sql->{'primarykey'} = 1;
                 push @setting, "PRIMARY KEY";
             }
             elsif ( 'id' eq lc( $column->{'ColName'} ) ) {
 
-                # id ¤Ï¼«Æ°Åª¤Ë¼ç¥­¡¼¤Ë¤¹¤ë
+                # id ã¯è‡ªå‹•çš„ã«ä¸»ã‚­ãƒ¼ã«ã™ã‚‹
                 $sql->{'primarykey'} = 1;
                 push @setting, "PRIMARY KEY";
             }
 
-            # ¥Ç¥Õ¥©¥ë¥ÈÃÍ
+            # ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤
             if ( length( $column->{'DefaultValue'} ) > 0 ) {
                 $sql->{'default'} = $column->{'DefaultValue'};
                 push @setting, sprintf( "DEFAULT '%s'", $column->{'DefaultValue'} );
             }
             elsif ( $column->{'idDatatype'} eq '14' ) {
 
-                # ÆüÉÕ¤Ï¼«Æ°Åª¤ËÀßÄê¤¹¤ë
+                # æ—¥ä»˜ã¯è‡ªå‹•çš„ã«è¨­å®šã™ã‚‹
                 $sql->{'default'} = "('now'::text)::timestamp";
                 push @setting, "DEFAULT ('now'::text)::timestamp";
             }
             elsif ( $column->{'idDatatype'} eq '16' ) {
 
-                # Æü»ş¤Ï¼«Æ°Åª¤ËÀßÄê¤¹¤ë
+                # æ—¥æ™‚ã¯è‡ªå‹•çš„ã«è¨­å®šã™ã‚‹
                 $sql->{'default'} = "('now'::text)::timestamp";
                 push @setting, "DEFAULT ('now'::text)::timestamp";
             }
             elsif ( 'disable' eq lc( $column->{'ColName'} ) ) {
 
-                # disable ¤Ï¼«Æ°Åª¤Ë 0 ¤Ë¤¹¤ë
+                # disable ã¯è‡ªå‹•çš„ã« 0 ã«ã™ã‚‹
                 $sql->{'default'} = "0";
                 push @setting, "DEFAULT '0'";
             }
 
-            # NOT NULL À©Ìó
+            # NOT NULL åˆ¶ç´„
             if ( $column->{'NotNull'} eq '1' ) {
                 $sql->{'notnull'} = 1;
                 push @setting, "NOT NULL";
             }
             elsif ( 'disable' eq lc( $column->{'ColName'} ) ) {
 
-                # disable ¤Ï¼«Æ°Åª¤Ë NOT NULL ¤Ë¤¹¤ë
+                # disable ã¯è‡ªå‹•çš„ã« NOT NULL ã«ã™ã‚‹
                 $sql->{'notnull'} = 1;
                 push @setting, "NOT NULL";
             }
 
-            # »²¾ÈÀ©Ìó
+            # å‚ç…§åˆ¶ç´„
             if ( $indices{ $column->{'ID'} } ) {
                 my $relation   = $this->get_relation( $indices{ $column->{'ID'} } );
                 my $src_table  = $this->get_table( $relation->{'SrcTable'} );
@@ -374,41 +374,41 @@ sub mk_compclass {
                     $column->{'ColName'}, $src_table->{'Tablename'} );
             }
 
-            # ¥³¥á¥ó¥È
+            # ã‚³ãƒ¡ãƒ³ãƒˆ
             if ( 'id' eq lc( $column->{'ColName'} ) ) {
 
-                # id ¤Ï¼«Æ°Åª¤Ë ID ¤Ë¤¹¤ë
+                # id ã¯è‡ªå‹•çš„ã« ID ã«ã™ã‚‹
                 push @setting, '/* ID */';
             }
             elsif ( 'disable' eq lc( $column->{'ColName'} ) ) {
 
-                # disable ¤Ï¼«Æ°Åª¤Ë ºï½ü ¤Ë¤¹¤ë
-                push @setting, '/* ºï½ü */';
+                # disable ã¯è‡ªå‹•çš„ã« å‰Šé™¤ ã«ã™ã‚‹
+                push @setting, '/* å‰Šé™¤ */';
             }
             else {
                 push @setting, sprintf( "/* %s */", $this->encode( $column->{'Comments'} ) );
             }
 
-            # ÎóÌ¾¤ÎÂåÆş
+            # åˆ—åã®ä»£å…¥
             $sql->{'name'} = $column->{'ColName'};
 
-            # ÎóÌ¾¤Ë¤è¤Ã¤ÆÈùÌ¯¤Ë¥«¥é¥à¤ÎÀâÌÀ¤òÊÑ¤¨¤ë
+            # åˆ—åã«ã‚ˆã£ã¦å¾®å¦™ã«ã‚«ãƒ©ãƒ ã®èª¬æ˜ã‚’å¤‰ãˆã‚‹
             if ( $column->{'ColName'} eq 'id' ) {
                 $sql->{'desc'} = 'ID';
             }
             elsif ( $column->{'ColName'} eq 'disable' ) {
-                $sql->{'desc'} = 'ºï½ü¥Õ¥é¥°';
+                $sql->{'desc'} = 'å‰Šé™¤ãƒ•ãƒ©ã‚°';
             }
             elsif ( $column->{'ColName'} eq 'date_regist' ) {
-                $sql->{'desc'} = 'ÅĞÏ¿Æü»ş';
+                $sql->{'desc'} = 'ç™»éŒ²æ—¥æ™‚';
             }
             elsif ( $column->{'ColName'} eq 'date_update' ) {
-                $sql->{'desc'} = '¹¹¿·Æü»ş';
+                $sql->{'desc'} = 'æ›´æ–°æ—¥æ™‚';
             }
             else {
                 $sql->{'desc'} = $this->encode( $column->{'Comments'} );
 
-                # ¥«¥é¥à¤ÎÀâÌÀ¤¬¤Ê¤¤¤È¤­¤Ï¥«¥é¥àÌ¾¤òÂçÊ¸»ú¤ËÊÑ´¹
+                # ã‚«ãƒ©ãƒ ã®èª¬æ˜ãŒãªã„ã¨ãã¯ã‚«ãƒ©ãƒ åã‚’å¤§æ–‡å­—ã«å¤‰æ›
                 if ( length( $sql->{'desc'} ) == 0 ) {
                     $sql->{'desc'} = uc $column->{'ColName'};
                 }
@@ -418,7 +418,7 @@ sub mk_compclass {
             push @settings, join( " ", @setting );
         }
 
-        # SQL½ĞÎÏ
+        # SQLå‡ºåŠ›
         my $setting_vars;
         $setting_vars->{'table'}   = $table->{'Tablename'};
         $setting_vars->{'comment'} = $this->encode( $table->{'Comments'} );
@@ -426,7 +426,7 @@ sub mk_compclass {
         $setting_vars->{'serials'} = join( "", @serials );
         $helper->render_file( 'schema_sql', "$schema_dir/$table->{'Tablename'}.sql", $setting_vars );
 
-        # ¥³¥ó¥È¥í¡¼¥é½ĞÎÏ
+        # ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©å‡ºåŠ›
         my $controller_vars;
         $controller_vars->{'app_name'}   = $helper->{'app'};
         $controller_vars->{'path_name'}  = lc $class_name;
@@ -439,7 +439,7 @@ sub mk_compclass {
         $controller_vars->{'sqls'}       = \@sqls;
         $helper->render_file( 'controller_class', "$controller_dir/$class_name.pm", $controller_vars );
 
-        # ¥Æ¥ó¥×¥ì¡¼¥È½ĞÎÏ
+        # ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆå‡ºåŠ›
         my $path_name = lc $class_name;
         $helper->mk_dir("$template_dir/$path_name");
         $helper->render_file( 'create_html', "$template_dir/$path_name/create.html", $controller_vars );
@@ -448,13 +448,13 @@ sub mk_compclass {
         $helper->render_file( 'list_html',   "$template_dir/$path_name/list.html",   $controller_vars );
     }
 
-    # ¥Ø¥Ã¥À¡¼¡¦¥Õ¥Ã¥¿¡¼½ĞÎÏ
+    # ãƒ˜ãƒƒãƒ€ãƒ¼ãƒ»ãƒ•ãƒƒã‚¿ãƒ¼å‡ºåŠ›
     my $header_footer_vars;
     $header_footer_vars->{'app_name'} = $helper->{'app'};
     $helper->render_file( 'header_html', "$template_dir/header.html", $header_footer_vars );
     $helper->render_file( 'footer_html', "$template_dir/footer.html", $header_footer_vars );
 
-    # ¸À¸ì¥Õ¥¡¥¤¥ë½ĞÎÏ
+    # è¨€èªãƒ•ã‚¡ã‚¤ãƒ«å‡ºåŠ›
     $helper->render_file( 'ja_po', "$i18n_dir/ja.po" );
     $helper->render_file( 'en_po', "$i18n_dir/en.po" );
 
@@ -538,7 +538,7 @@ sub setting {
     my ( $self, $c ) = @_;
     my $hash = {
         'name'     => '[% path_name %]',
-        'model'    => '[% base_name %]::[% model_name %]Master',
+        'model'    => '[% base_name %]::[% model_name %]',
         'primary'  => '[% primary %]',
         'columns'  => [qw([% columns %])],
         'default'  => '/[% path_name %]/list',
@@ -557,297 +557,158 @@ sub setting {
 1;
 
 __header_html__
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
   <head>
-    <meta http-equiv="content-type" content="application/xhtml+xml; charset=euc-jp" />
-    
     <title>[% app_name %]</title>
-    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!-- link rel="stylesheet" href="styles.css" / -->
     <style type="text/css">
     <!--
-    /* ###### Browser-specific Styles ###### */
-    
-    /* For IE & Mozilla-based browsers: */
-    
-    .LHS {
-      margin-left: 2.5mm;
-      float: left;
-      clear: left;
-    }
-    
-    .RHS {
-      margin-right: 2.5mm;
-      float: right;
-      clear: right;
-    }
-    
-    /* For Mozilla-based (CSS2-fully complaint) browsers only: */
-    
-    [class~="LHS"] {
-      margin-left: 5mm;
-    }
-    
-    [class~="RHS"] {
-      margin-right: 5mm;
-    }
-    
-    /* ###### Body Text ###### */
-    
-    body {
-      background-color: white;
-      color: black;
-      font-family: verdana, tahoma, helvetica, arial, sans-serif;
-      font-size: 95%;
-      margin: 0;
-      background-repeat: no-repeat;
-      background-attachment: scroll;
-    }
-    
-    h1, h2, h3 {
-      font-family: "trebuchet ms", tahoma, sans-serif;
-    }
-    
-    h1 {
-      font-weight: bold;
-      font-size: 150%;
-      border-bottom-style: solid;
-      border-bottom-width: 1px;
-      padding-bottom: 0.5ex;
-    }
-    
-    img {
-      border: none;
-    }
-    
-    q {
-      font-family: tahoma, verdana, helvetica, arial, sans-serif;
-      font-weight: bold;
-      border-style: dotted;
-      border-width: 2px;
-      margin: 0 1em 1ex 1em;
-      padding: 0.5ex 0.5ex 0.5ex 1ex;
-      width: 9em;
-      float: left;
-    }
-    
-    acronym {
-      border-bottom-style: dotted;
-      border-bottom-width: 1px;
-      cursor: help;
-    }
-    
-    code {
-      font-family: "lucida console", monospace;
-      font-size: 90%;
-    }
-    
-    dt {
-      font-weight: bold;
-    }
-    
-    dd {
-      padding-bottom: 1.5em;
-    }
-    
-    #bodyText {
-      text-align: justify;
-      line-height: 1.5em;
-      margin: 10mm 5mm 0 14em;
-      padding: 0 1em 1ex 1em;
-    }
-    
-    #bodyText p {
-      padding-bottom: 2ex;
-    }
-    
-    #bodyText a {
-      text-decoration: none;
-      border-bottom-style: solid;
-      border-bottom-width: 1px;
-    }
-    
-    #bodyText a:hover {
-      border-bottom: none;
-    }
-    
-    #bodyText .topOfPage {
-      font-size: 90%;
-      font-weight: bold;
-      font-variant: small-caps;
-      text-decoration: none;
-      border: none;
-      padding-left: 1ex;
-      padding-right: 1ex;
-      float: right;
-    }
-    
-    .smallCaps {
-      font-variant: small-caps;
-    }
-    
-    /* ###### Header ###### */
-    
-    #header {
-      border-bottom-style: solid;
-      border-bottom-width: 2px;
-      height: 7.5em;
-      margin-bottom: 5mm;
-      padding: 0 2.5mm 0 5mm;
-      background-repeat: no-repeat;
-    }
-    
-    .headerTitle {
-      font-size: 300%;
-      font-weight: bold;
-      line-height: 2em;
-    }
-    
-    .menuBar {
-      float: left;
-    }
-    
-    .locBar {
-      float: right;
-    }
-    
-    .menuBar *, .locBar * {
-      text-decoration: none;
-      font-weight: bold;
-      padding-right: 1ex;
-    }
-    
-    .menuBar a:hover, .locBar a:hover {
-      text-decoration: underline;
-    }
-    
-    /* ###### Side Box ###### */
-    
-    .sideBox {
-      border-style: solid none solid none;
-      border-width: 2px 0 2px 0;
-      width: 11em;
-      margin-top: 5mm;
-    }
-    
-    .sideBox div {
-      font-weight: bold;
-      border-bottom-style: dashed;
-      border-bottom-width: 1px;
-      padding: 0.5ex 0.5em 0.5ex 0.75em;
-    }
-    
-    .sideBox a, .sideBox a:hover, .sideBox span {
-      color: black;
-      text-decoration: none;
-      line-height: 1.25em;
-      display: block;
-      padding: 1.25ex 0.5em 1.25ex 0.75em;
-    }
-    
-    .sideBox .thisPage {
-      font-weight: bold;
-    }
-    
-    /* ###### Footer ###### */
-    
-    #footer {
-      padding-top: 0.75ex;
-      padding-bottom: 0.75ex;
-      clear: left;
-    }
-    
-    #footer div {
-      font-size: 85%;
-      line-height: 1.25em;
-      text-align: right;
-      padding-right: 3mm;
-    }
-    
-    #footer a:hover {
-      text-decoration: none;
-    }
-    
-    .footerLHS {
-      float: left;
-      clear: left;
-      padding-left: 3mm;
-    }
-    
-    /* ###### General Color Scheme ###### */
-    
-    h1, h2, h3, q, #header div, #header div *, #footer *, .headerTitle, .sideBox div, .topOfPage
-    { /* Text Color: */  color: #4080ff; }
-    
-    h1, q,  #header, .sideBox, .sideBox div
-    { /* Border Color: */  border-color: #0080ff; }
-    
-    #header, .sideBox div, .sideBox a:hover, .sideBox .thisPage
-    { /* Background Color (darker): */  background-color: #e8f0ff; }
-    
-    q, .sideBox a, .sideBox span
-    { /* Background Color (lighter): */  background-color: #fafcff; }
-    
-    /* ###### Special Colors ###### */
-    
-    acronym {
-      color: blue;
-      border-bottom-color: blue;
-    }
-    
-    #bodyText a {
-      color: #4080ff;
-      border-bottom-color: #4080ff;
-    }
-    
-    #footer {
-      background-color: #f2f6ff;
-    }
+      #centre {
+      border:1px solid #202020;
+      border-bottom:0;
+      border-top:0;
+      color:#000;
+      padding:1.5em;
+      }
+
+      #conteneur {
+      background-color:#fafafa;
+      margin:1em 5%;
+      min-width:60em;
+      position:absolute;
+      width:90%;
+      }
+
+      #haut {
+      background-color:#202020;
+      height:2.4em;
+      max-height:2.4em;
+      }
+
+      #header {
+      background-color:#2D4B9B;
+      border:1px solid #fafafa;
+      color:#fafafa;
+      font-size:2em;
+      height:2.5em;
+      padding-left:2em;
+      padding-top:1em;
+      }
+
+      #pied {
+      border:1px solid #202020;
+      border-top:0;
+      padding:0.5em;
+      text-align:right;
+      }
+
+      .menuhaut {
+      font-size:1em;
+      list-style-type:none;
+      margin:0;
+      padding:0;
+      }
+
+      .menuhaut a {
+      color:#fafafa;
+      margin:0 0.4em;
+      text-decoration:none;
+      }
+
+      .menuhaut a:hover {
+      color:#FF0;
+      text-decoration:none;
+      }
+
+      .menuhaut li {
+      border-right:1px solid #fff;
+      display:inline;
+      float:left;
+      margin:0;
+      padding:0.6em 10px;
+      }
+
+      a {
+      color:#000;
+      text-decoration:underline;
+      }
+
+      body {
+      background-color:#CDCDCD;
+      font-family:Verdana, Arial, Helvetica, sans-serif;
+      font-size:0.75em;
+      }
+
+      h1 {
+      font-size:1.6em;
+      margin:0.5em 0.5em 1em 0;
+      }
+
+      h2 {
+      font-size:1.2em;
+      margin:0.8em 0.5em 0.3em 0.6em;
+      }
+
+      h3 {
+      font-size:1.1em;
+      margin:0.8em 0.5em 0.3em 0.8em;
+      }
+
+      h4 {
+      font-size:1em;
+      margin:0.7em 0.5em 0.3em 1em;
+      }
+
+      h5 {
+      font-size:0.9em;
+      margin:0.6em 0.5em 0.2em 1.5em;
+      }
+
+      p {
+      margin:1px 0.5em 0.5em 1.5em;
+      }
+
+      table {
+      border-collapse: collapse;
+      margin:1px 0.5em 0.5em 1.5em;
+      }
+
+      th {
+      background-color: #C0C0C0;
+      border: 1px solid #202020;
+      padding: 3px;
+      color: #202020;
+      }
+
+      td {
+      background-color: #FFFFFF;
+      border: 1px solid #202020;
+      padding: 3px;
+      }
     -->
     </style>
   </head>
-
   <body>
-    <div id="top"></div>
-
-    <!-- ###### Header ###### -->
-
-    <div id="header">
-      <span class="headerTitle">[% app_name %]</span>
-      <div class="menuBar">
-        <a href="/">Home</a>|
-        <a href="#">Menu1</a>|
-        <a href="#">Menu2</a>
+    <div id="conteneur">
+      <!-- header -->
+      <div id="header">[% app_name %]</div>
+      <!-- menu -->
+      <div id="haut">
+        <ul class="menuhaut">
+          <li><a href="#">menu1</a></li>
+          <li><a href="#">menu2</a></li>
+          <li><a href="#">menu3</a></li>
+        </ul>
       </div>
-    </div>
-
-    <!-- ###### Side Boxes ###### -->
-
-    <div class="sideBox LHS">
-      <div>SubMenu</div>
-      <a href="#">SubMenu1</a>
-      <a href="#">SbuMenu2</a>
-    </div>
-
-    <!-- ###### Body Text ###### -->
-
-    <div id="bodyText">
+      <!-- contents -->
+      <div id="centre">
 
 __footer_html__
-    </div>
-    
-    <!-- ###### Footer ###### -->
-
-    <div id="footer">
-      <div class="footerLHS">
-        <a href="#">SiteMap</a>
       </div>
-      
-      <div>
-        Copyright (C) 20XX xxxx yyyy.
-      </div>
+      <!-- footer -->
+      <div id="pied">Copyright (C) 2007 foobar.</div>
     </div>
   </body>
 </html>
@@ -855,8 +716,8 @@ __footer_html__
 __create_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
-<a class="topOfPage" href="#top" title="Top Of Page">top</a>
 <h1>[- comment -][% c.loc('New') %]</h1>
+
 [% IF c.stash.create.error -%]
 <font color="red">[% c.stash.create.message %]</font>
 [% END -%]
@@ -877,7 +738,6 @@ __create_html__
 __read_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
-<a class="topOfPage" href="#top" title="Top Of Page">top</a>
 <h1>[- comment -][% c.loc('Detail') %]</h1>
 
 <form>
@@ -897,7 +757,6 @@ __read_html__
 __update_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
-<a class="topOfPage" href="#top" title="Top Of Page">top</a>
 <h1>[- comment -][% c.loc('Edit') %]</h1>
 
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
@@ -917,7 +776,6 @@ __update_html__
 __list_html__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.html -%]
-<a class="topOfPage" href="#top" title="Top Of Page">top</a>
 <h1>[- comment -][% c.loc('List') %]</h1>
 
 <form>
@@ -945,28 +803,28 @@ __list_html__
 
 __ja_po__
 msgid "New"
-msgstr "¿·µ¬"
+msgstr "æ–°è¦"
 
 msgid "Detail"
-msgstr "¾ÜºÙ"
+msgstr "è©³ç´°"
 
 msgid "Edit"
-msgstr "ÊÔ½¸"
+msgstr "ç·¨é›†"
 
 msgid "Delete"
-msgstr "ºï½ü"
+msgstr "å‰Šé™¤"
 
 msgid "List"
-msgstr "°ìÍ÷"
+msgstr "ä¸€è¦§"
 
 msgid "Add"
-msgstr "ÄÉ²Ã"
+msgstr "è¿½åŠ "
 
 msgid "Update"
-msgstr "¹¹¿·"
+msgstr "æ›´æ–°"
 
 msgid "Delete"
-msgstr "ºï½ü"
+msgstr "å‰Šé™¤"
 
 __en_po__
 msgid "New"
