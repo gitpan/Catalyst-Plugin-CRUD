@@ -1,5 +1,9 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
+0.15 Wed Apr 12 03:16:00 2007
+	- refactoring at Catalyst::Helper::Model::CRUD
+	- change .html to .tt
+
 0.14 Sat Mar 10 02:25:00 2007
 	- refactoring at Catalyst::Helper::Model::CRUD
 

@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 NAME
 
@@ -32,7 +32,7 @@ my @tables;
 
 =head2 encode($str)
 
-translate DBDesigner 4's comment to EUC-JP
+translate comment of DBDesigner4 to UTF-8
 
 =cut
 
@@ -67,9 +67,9 @@ sub encode {
         }
     }
 
-    # translate Shift-JIS to EUC-JP
+    # translate Shift-JIS to UTF-8
     my $result = pack( "C*", @list );
-    return jcode( $result, 'sjis' )->euc;
+    return jcode( $result, 'sjis' )->utf8;
 }
 
 =head2 get_class_name($str)
@@ -96,7 +96,7 @@ sub get_class_name {
 
 =head2 get_relation($relation_id)
 
-get appinted ID's relation
+get relation of appointed ID
 
 =cut
 
@@ -111,7 +111,7 @@ sub get_relation {
 
 =head2 get_table($table_id)
 
-get appointed ID's table
+get table of appointed ID
 
 =cut
 
@@ -126,7 +126,7 @@ sub get_table {
 
 =head2 get_setting_index($array, $name)
 
-get appointed name's setting number
+get setting number of appointed name
 
 =cut
 
@@ -221,6 +221,9 @@ sub mk_compclass {
     my %limit;
     $limit{$_} = 1 foreach (@limited_file);
 
+    # 言語ファイル用キーワードファイル
+    my @keywords;
+
     foreach my $table (@tables) {
         my $model_name = $this->get_class_name( $table->{'Tablename'} );
         my $class_name = $model_name;
@@ -230,6 +233,14 @@ sub mk_compclass {
         if ( scalar @limited_file ) {
             next unless ( $limit{$class_name} );
         }
+
+        # 言語ファイルに追加
+        push @keywords, 
+            {
+                name    => $class_name . '_class_name', 
+                desc_ja => $this->encode( $table->{'Comments'} ),
+                desc_en => $class_name
+            };
 
         # 各テーブルの列一覧取得
         my @columns = @{ $table->{'COLUMNS'}->{'COLUMN'} }
@@ -385,34 +396,69 @@ sub mk_compclass {
                 # disable は自動的に 削除 にする
                 push @setting, '/* 削除 */';
             }
+            elsif ( 'date_regist' eq lc( $column->{'ColName'} ) ) {
+
+                # disable は自動的に 登録日時 にする
+                push @setting, '/* 登録日時 */';
+            }
+            elsif ( 'date_update' eq lc( $column->{'ColName'} ) ) {
+
+                # disable は自動的に 更新日時 にする
+                push @setting, '/* 更新日時 */';
+            }
             else {
                 push @setting, sprintf( "/* %s */", $this->encode( $column->{'Comments'} ) );
+            }
+                
+            # 言語ファイル
+            if ( 'id' eq lc( $column->{'ColName'} ) ) {
+                push @keywords, 
+                    {
+                        name    => $class_name . '_' . $column->{'ColName'}, 
+                        desc_ja => 'ID',
+                        desc_en => 'ID'
+                    };
+            }
+            elsif ( 'disable' eq lc( $column->{'ColName'} ) ) {
+                push @keywords, 
+                    {
+                        name    => $class_name . '_' . $column->{'ColName'}, 
+                        desc_ja => '削除',
+                        desc_en => 'DISABLE'
+                    };
+            }
+            elsif ( 'date_regist' eq lc( $column->{'ColName'} ) ) {
+                push @keywords, 
+                    {
+                        name    => $class_name . '_' . $column->{'ColName'}, 
+                        desc_ja => '登録日時',
+                        desc_en => 'DATE_REGIST'
+                    };
+            }
+            elsif ( 'date_update' eq lc( $column->{'ColName'} ) ) {
+                push @keywords, 
+                    {
+                        name    => $class_name . '_' . $column->{'ColName'}, 
+                        desc_ja => '更新日時',
+                        desc_en => 'DATE_UPDATE'
+                    };
+            }
+            else {
+                push @keywords, 
+                    {
+                        name    => $class_name . '_' . $column->{'ColName'}, 
+                        desc_ja => 
+                            length( $column->{'Comments'} ) == 0 ? 
+                                uc $column->{'ColName'} : $this->encode( $column->{'Comments'} ),
+                        desc_en => uc $column->{'ColName'}
+                    };
             }
 
             # 列名の代入
             $sql->{'name'} = $column->{'ColName'};
 
-            # 列名によって微妙にカラムの説明を変える
-            if ( $column->{'ColName'} eq 'id' ) {
-                $sql->{'desc'} = 'ID';
-            }
-            elsif ( $column->{'ColName'} eq 'disable' ) {
-                $sql->{'desc'} = '削除フラグ';
-            }
-            elsif ( $column->{'ColName'} eq 'date_regist' ) {
-                $sql->{'desc'} = '登録日時';
-            }
-            elsif ( $column->{'ColName'} eq 'date_update' ) {
-                $sql->{'desc'} = '更新日時';
-            }
-            else {
-                $sql->{'desc'} = $this->encode( $column->{'Comments'} );
-
-                # カラムの説明がないときはカラム名を大文字に変換
-                if ( length( $sql->{'desc'} ) == 0 ) {
-                    $sql->{'desc'} = uc $column->{'ColName'};
-                }
-            }
+            # 列の説明の代入
+            $sql->{'desc'} = $class_name . '_' . $column->{'ColName'};
 
             push @sqls, $sql;
             push @settings, join( " ", @setting );
@@ -442,21 +488,23 @@ sub mk_compclass {
         # テンプレート出力
         my $path_name = lc $class_name;
         $helper->mk_dir("$template_dir/$path_name");
-        $helper->render_file( 'create_html', "$template_dir/$path_name/create.html", $controller_vars );
-        $helper->render_file( 'read_html',   "$template_dir/$path_name/read.html",   $controller_vars );
-        $helper->render_file( 'update_html', "$template_dir/$path_name/update.html", $controller_vars );
-        $helper->render_file( 'list_html',   "$template_dir/$path_name/list.html",   $controller_vars );
+        $helper->render_file( 'create_tt', "$template_dir/$path_name/create.tt", $controller_vars );
+        $helper->render_file( 'read_tt',   "$template_dir/$path_name/read.tt",   $controller_vars );
+        $helper->render_file( 'update_tt', "$template_dir/$path_name/update.tt", $controller_vars );
+        $helper->render_file( 'list_tt',   "$template_dir/$path_name/list.tt",   $controller_vars );
     }
 
     # ヘッダー・フッター出力
     my $header_footer_vars;
     $header_footer_vars->{'app_name'} = $helper->{'app'};
-    $helper->render_file( 'header_html', "$template_dir/header.html", $header_footer_vars );
-    $helper->render_file( 'footer_html', "$template_dir/footer.html", $header_footer_vars );
+    $helper->render_file( 'header_tt', "$template_dir/header.tt", $header_footer_vars );
+    $helper->render_file( 'footer_tt', "$template_dir/footer.tt", $header_footer_vars );
 
     # 言語ファイル出力
-    $helper->render_file( 'ja_po', "$i18n_dir/ja.po" );
-    $helper->render_file( 'en_po', "$i18n_dir/en.po" );
+    my $i18n_vars;
+    $i18n_vars->{'keywords'} = \@keywords;
+    $helper->render_file( 'ja_po', "$i18n_dir/ja.po", $i18n_vars );
+    $helper->render_file( 'en_po', "$i18n_dir/en.po", $i18n_vars );
 
     print "==========================================================\n";
 }
@@ -544,11 +592,10 @@ sub setting {
         'default'  => '/[% path_name %]/list',
         'template' => {
             'prefix' => 'template/[% path_name %]/',
-            'create' => 'create.html',
-            'read'   => 'read.html',
-            'update' => 'update.html',
-            'delete' => 'delete.html',
-            'list'   => 'list.html'
+            'create' => 'create.tt',
+            'read'   => 'read.tt',
+            'update' => 'update.tt',
+            'list'   => 'list.tt'
         },
     };
     return $hash;
@@ -556,7 +603,7 @@ sub setting {
 
 1;
 
-__header_html__
+__header_tt__
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <head>
@@ -705,7 +752,7 @@ __header_html__
       <!-- contents -->
       <div id="centre">
 
-__footer_html__
+__footer_tt__
       </div>
       <!-- footer -->
       <div id="pied">Copyright (C) 2007 foobar.</div>
@@ -713,10 +760,10 @@ __footer_html__
   </body>
 </html>
 
-__create_html__
+__create_tt__
 [% TAGS [- -] -%]
-[% INCLUDE template/header.html -%]
-<h1>[- comment -][% c.loc('New') %]</h1>
+[% INCLUDE template/header.tt -%]
+<h1>[- comment -] [% c.loc('New') %]</h1>
 
 [% IF c.stash.create.error -%]
 <font color="red">[% c.stash.create.message %]</font>
@@ -725,7 +772,7 @@ __create_html__
 <table>
 [- FOREACH sql = sqls --]
   <tr>
-    <td>[- sql.desc -]</td><td><input type="text" name="[- sql.name -]" size="25" value="[% c.req.param('[- sql.name -]') %]"></td>
+    <td>[% c.loc('[- sql.desc -]') %]</td><td><input type="text" name="[- sql.name -]" size="25" value="[% c.req.param('[- sql.name -]') %]"></td>
   </tr>
 [- END --]
   <tr>
@@ -733,12 +780,12 @@ __create_html__
   </tr>
 </table>
 </form>
-[% INCLUDE template/footer.html -%]
+[% INCLUDE template/footer.tt -%]
 
-__read_html__
+__read_tt__
 [% TAGS [- -] -%]
-[% INCLUDE template/header.html -%]
-<h1>[- comment -][% c.loc('Detail') %]</h1>
+[% INCLUDE template/header.tt -%]
+<h1>[- comment -] [% c.loc('Detail') %]</h1>
 
 <form>
   <input type="button" name="btn_update" value="[% c.loc('Edit') %]" onclick="javascript:window.location='/[- path_name -]/update/[% c.stash.[- path_name -].[- primary -] %]';"><br/>
@@ -748,22 +795,22 @@ __read_html__
 <table border="1">
 [- FOREACH sql = sqls --]
   <tr>
-    <td>[- sql.desc -]</td><td>[% c.stash.[- path_name -].[- sql.name -] %]</td>
+    <td>[% c.loc('[- sql.desc -]') %]</td><td>[% c.stash.[- path_name -].[- sql.name -] %]</td>
   </tr>
 [- END --]
 </table>
-[% INCLUDE template/footer.html -%]
+[% INCLUDE template/footer.tt -%]
 
-__update_html__
+__update_tt__
 [% TAGS [- -] -%]
-[% INCLUDE template/header.html -%]
-<h1>[- comment -][% c.loc('Edit') %]</h1>
+[% INCLUDE template/header.tt -%]
+<h1>[- comment -] [% c.loc('Edit') %]</h1>
 
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
 <table border="1">
 [- FOREACH sql = sqls --]
   <tr>
-    <td>[- sql.desc -]</td><td><input type="text" name="[- sql.name -]" size="25" value="[% c.stash.[- path_name -].[- sql.name -] %]"></td>
+    <td>[% c.loc('[- sql.desc -]') %]</td><td><input type="text" name="[- sql.name -]" size="25" value="[% c.stash.[- path_name -].[- sql.name -] %]"></td>
   </tr>
 [- END --]
   <tr>
@@ -771,12 +818,12 @@ __update_html__
   </tr>
 </table>
 </form>
-[% INCLUDE template/footer.html -%]
+[% INCLUDE template/footer.tt -%]
 
-__list_html__
+__list_tt__
 [% TAGS [- -] -%]
-[% INCLUDE template/header.html -%]
-<h1>[- comment -][% c.loc('List') %]</h1>
+[% INCLUDE template/header.tt -%]
+<h1>[- comment -] [% c.loc('List') %]</h1>
 
 <form>
   <input type="button" name="btn_create" value="[% c.loc('New') %]" onclick="javascript:window.location='/[- path_name -]/create';"><br/>
@@ -785,21 +832,25 @@ __list_html__
 
 <table border="1">
 <tr>
-  <th>ID</th>
+[- FOREACH sql = sqls --]
+  <th>[% c.loc('[- sql.desc -]') %]</th>
+[- END --]
   <th>[% c.loc('Detail') %]</th>
   <th>[% c.loc('Edit') %]</th>
   <th>[% c.loc('Delete') %]</th>
 </tr>
 [% FOREACH [- path_name -] = c.stash.[- path_name -]s -%]
 <tr>
-  <td>[% [- path_name -].[- primary -] %]</td>
+[- FOREACH sql = sqls --]
+  <td>[% [- path_name -].[- sql.name -] %]</td>
+[- END --]
   <td><a href="/[- path_name -]/read/[% [- path_name -].[- primary -] %]">[% c.loc('Detail') %]</a></td>
   <td><a href="/[- path_name -]/update/[% [- path_name -].[- primary -] %]">[% c.loc('Edit') %]</a></td>
   <td><a href="/[- path_name -]/delete/[% [- path_name -].[- primary -] %]">[% c.loc('Delete') %]</a></td>
 </tr>
 [% END -%]
 </table>
-[% INCLUDE template/footer.html -%]
+[% INCLUDE template/footer.tt -%]
 
 __ja_po__
 msgid "New"
@@ -826,6 +877,12 @@ msgstr "更新"
 msgid "Delete"
 msgstr "削除"
 
+[% FOREACH keyword = keywords -%]
+msgid "[% keyword.name -%]"
+msgstr "[% keyword.desc_ja -%]"
+
+[% END -%]
+
 __en_po__
 msgid "New"
 msgstr ""
@@ -851,3 +908,8 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
+[% FOREACH keyword = keywords -%]
+msgid "[% keyword.name -%]"
+msgstr "[% keyword.desc_en -%]"
+
+[% END -%]

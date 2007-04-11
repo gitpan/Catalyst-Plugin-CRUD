@@ -35,11 +35,10 @@ Catalyst::Plugin::CRUD::CDBI - CRUD (create/read/update/delete) Plugin for Class
           'default'  => '/user/list',
           'template' => {
               'prefix' => 'template/user/',
-              'create' => 'create.html',
-              'read'   => 'read.html',
-              'update' => 'update.html',
-              'delete' => 'delete.html',
-              'list'   => 'list.html'
+              'create' => 'create.tt',
+              'read'   => 'read.tt',
+              'update' => 'update.tt',
+              'list'   => 'list.tt'
           },
       };
       return $hash;
@@ -52,7 +51,7 @@ Catalyst::Plugin::CRUD::CDBI - CRUD (create/read/update/delete) Plugin for Class
   
   1;
 
-  <!-- MyApp/root/template/user/create.html -->
+  <!-- MyApp/root/template/user/create.tt -->
   <html>
   <body>
   <h1>Create New User</h1>
