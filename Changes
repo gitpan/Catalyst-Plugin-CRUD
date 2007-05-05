@@ -1,5 +1,15 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
+0.16 Wed Mar 5 22:13:00 2007
+	- refactoring at Catalyst::Helper::Model::CRUD
+	- refactoring at Catalyst::Plugin::CRUD
+    	- deleted Catalyst::Plugin::CRUD::CDBI
+    	- deleted Catalyst::Plugin::CRUD::DBIC
+    	- added Catalyst::Conroller::CRUD
+    	- added Catalyst::Conroller::CRUD::CDBI
+    	- added Catalyst::Conroller::CRUD::DBIC
+	- fixed dupricated 'DELETE' in MyApp/lib/MyApp/I18N/*.po
+
 0.15 Wed Apr 12 03:16:00 2007
 	- refactoring at Catalyst::Helper::Model::CRUD
 	- change .html to .tt

@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.09';
+our $VERSION = '0.16';
 
 =head1 NAME
 
@@ -492,13 +492,19 @@ sub mk_compclass {
         $helper->render_file( 'read_tt',   "$template_dir/$path_name/read.tt",   $controller_vars );
         $helper->render_file( 'update_tt', "$template_dir/$path_name/update.tt", $controller_vars );
         $helper->render_file( 'list_tt',   "$template_dir/$path_name/list.tt",   $controller_vars );
+        $helper->render_file( 'create_cs', "$template_dir/$path_name/create.cs", $controller_vars );
+        $helper->render_file( 'read_cs',   "$template_dir/$path_name/read.cs",   $controller_vars );
+        $helper->render_file( 'update_cs', "$template_dir/$path_name/update.cs", $controller_vars );
+        $helper->render_file( 'list_cs',   "$template_dir/$path_name/list.cs",   $controller_vars );
     }
 
     # ヘッダー・フッター出力
     my $header_footer_vars;
     $header_footer_vars->{'app_name'} = $helper->{'app'};
-    $helper->render_file( 'header_tt', "$template_dir/header.tt", $header_footer_vars );
-    $helper->render_file( 'footer_tt', "$template_dir/footer.tt", $header_footer_vars );
+    $helper->render_file( 'header_html', "$template_dir/header.tt", $header_footer_vars );
+    $helper->render_file( 'footer_html', "$template_dir/footer.tt", $header_footer_vars );
+    $helper->render_file( 'header_html', "$template_dir/header.cs", $header_footer_vars );
+    $helper->render_file( 'footer_html', "$template_dir/footer.cs", $header_footer_vars );
 
     # 言語ファイル出力
     my $i18n_vars;
@@ -521,7 +527,7 @@ Jun Shimizu, E<lt>bayside@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006 by Jun Shimizu
+Copyright (C) 2006,2007 by Jun Shimizu
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.2 or,
@@ -586,6 +592,7 @@ sub setting {
     my ( $self, $c ) = @_;
     my $hash = {
         'name'     => '[% path_name %]',
+        'type'     => '[% base_name %]',
         'model'    => '[% base_name %]::[% model_name %]',
         'primary'  => '[% primary %]',
         'columns'  => [qw([% columns %])],
@@ -603,7 +610,7 @@ sub setting {
 
 1;
 
-__header_tt__
+__header_html__
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <head>
@@ -752,7 +759,7 @@ __header_tt__
       <!-- contents -->
       <div id="centre">
 
-__footer_tt__
+__footer_html__
       </div>
       <!-- footer -->
       <div id="pied">Copyright (C) 2007 foobar.</div>
@@ -766,7 +773,7 @@ __create_tt__
 <h1>[- comment -] [% c.loc('New') %]</h1>
 
 [% IF c.stash.create.error -%]
-<font color="red">[% c.stash.create.message %]</font>
+<p><font color="red">[% c.stash.create.message %]</font></p>
 [% END -%]
 <form name="[- path_name -]" method="post" action="/[- path_name -]/create">
 <table>
@@ -781,6 +788,28 @@ __create_tt__
 </table>
 </form>
 [% INCLUDE template/footer.tt -%]
+
+__create_cs__
+[% TAGS [- -] -%]
+<?cs include:"template/header.cs" ?>
+<h1>[- comment -] <?cs var:loc.New ?></h1>
+
+<?cs if:create.error ?>
+<p><font color="red"><?cs var:create.message ?></font></p>
+<?cs /if ?>
+<form name="[- path_name -]" method="post" action="/[- path_name -]/create">
+<table>
+[- FOREACH sql = sqls --]
+  <tr>
+    <td><?cs var:loc.[- sql.desc -] ?></td><td><input type="text" name="[- sql.name -]" size="25" value="<?cs var:req_param.[- sql.name -] ?>"></td>
+  </tr>
+[- END --]
+  <tr>
+    <td colspan="2" align="center"><input type="submit" name="btn_create" value="<?cs var:loc.Add ?>"></td>
+  </tr>
+</table>
+</form>
+<?cs include:"template/footer.cs" ?>
 
 __read_tt__
 [% TAGS [- -] -%]
@@ -801,11 +830,33 @@ __read_tt__
 </table>
 [% INCLUDE template/footer.tt -%]
 
+__read_cs__
+[% TAGS [- -] -%]
+<?cs include:"template/header.cs" ?>
+<h1>[- comment -] <?cs var:loc.Detail ?></h1>
+
+<form>
+  <input type="button" name="btn_update" value="<?cs var:loc.Edit ?>" onclick="javascript:window.location='/[- path_name -]/update/<?cs var:[- path_name -].[- primary -] ?>';"><br/>
+  <br/>
+</form>
+
+<table border="1">
+[- FOREACH sql = sqls --]
+  <tr>
+    <td><?cs var:loc.[- sql.desc -] ?></td><td><?cs var:[- path_name -].[- sql.name -] ?></td>
+  </tr>
+[- END --]
+</table>
+<?cs include:"template/footer.cs" ?>
+
 __update_tt__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.tt -%]
 <h1>[- comment -] [% c.loc('Edit') %]</h1>
 
+[% IF c.stash.update.error -%]
+<p><font color="red">[% c.stash.update.message %]</font></p>
+[% END -%]
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
 <table border="1">
 [- FOREACH sql = sqls --]
@@ -819,6 +870,28 @@ __update_tt__
 </table>
 </form>
 [% INCLUDE template/footer.tt -%]
+
+__update_cs__
+[% TAGS [- -] -%]
+<?cs include:"template/header.cs" ?>
+<h1>[- comment -] <?cs var:loc.Edit ?></h1>
+
+<?cs if:update.error ?>
+<p><font color="red"><?cs var:update.message ?></font></p>
+<?cs /if ?>
+<form name="[- path_name -]" method="post" action="/[- path_name -]/update">
+<table border="1">
+[- FOREACH sql = sqls --]
+  <tr>
+    <td><?cs var:loc.[- sql.desc -] ?></td><td><input type="text" name="[- sql.name -]" size="25" value="<?cs var:[- path_name -].[- sql.name -] ?>"></td>
+  </tr>
+[- END --]
+  <tr>
+    <td colspan="2" align="center"><input type="submit" name="btn_update" value="<?cs var:loc.Update ?>"></td>
+  </tr>
+</table>
+</form>
+<?cs include:"template/footer.cs" ?>
 
 __list_tt__
 [% TAGS [- -] -%]
@@ -852,6 +925,38 @@ __list_tt__
 </table>
 [% INCLUDE template/footer.tt -%]
 
+__list_cs__
+[% TAGS [- -] -%]
+<?cs include:"template/header.cs" ?>
+<h1>[- comment -] <?cs var:loc.List ?></h1>
+
+<form>
+  <input type="button" name="btn_create" value="<?cs var:loc.New ?>" onclick="javascript:window.location='/[- path_name -]/create';"><br/>
+  <br/>
+</form>
+
+<table border="1">
+<tr>
+[- FOREACH sql = sqls --]
+  <th><?cs var:loc.[- sql.desc -] ?></th>
+[- END --]
+  <th><?cs var:loc.Detail ?></th>
+  <th><?cs var:loc.Edit ?></th>
+  <th><?cs var:loc.Delete ?></th>
+</tr>
+<?cs each:[- path_name -] = [- path_name -]s ?>
+<tr>
+[- FOREACH sql = sqls --]
+  <td><?cs var:[- path_name -].[- sql.name -] ?></td>
+[- END --]
+  <td><a href="/[- path_name -]/read/<?cs var:[- path_name -].[- primary -] ?>"><?cs var:loc.Detail ?></a></td>
+  <td><a href="/[- path_name -]/update/<?cs var:[- path_name -].[- primary -] ?>"><?cs var:loc.Edit ?></a></td>
+  <td><a href="/[- path_name -]/delete/<?cs var:[- path_name -].[- primary -] ?>"><?cs var:loc.Delete ?></a></td>
+</tr>
+<?cs /each ?>
+</table>
+<?cs include:"template/footer.cs" ?>
+
 __ja_po__
 msgid "New"
 msgstr "新規"
@@ -874,8 +979,11 @@ msgstr "追加"
 msgid "Update"
 msgstr "更新"
 
-msgid "Delete"
-msgstr "削除"
+msgid "Login"
+msgstr "ログイン"
+
+msgid "Logout"
+msgstr "ログアウト"
 
 [% FOREACH keyword = keywords -%]
 msgid "[% keyword.name -%]"
@@ -905,7 +1013,10 @@ msgstr ""
 msgid "Update"
 msgstr ""
 
-msgid "Delete"
+msgid "Login"
+msgstr ""
+
+msgid "Logout"
 msgstr ""
 
 [% FOREACH keyword = keywords -%]

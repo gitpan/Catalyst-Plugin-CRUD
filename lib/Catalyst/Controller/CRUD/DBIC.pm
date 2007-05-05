@@ -1,14 +1,14 @@
-package Catalyst::Plugin::CRUD::DBIC;
+package Catalyst::Controller::CRUD::DBIC;
 
 use strict;
 use warnings;
-use base qw(Catalyst::Plugin::CRUD);
+use base qw(Catalyst::Controller::CRUD);
 
-our $VERSION = '0.05';
+our $VERSION = '0.16';
 
 =head1 NAME
 
-Catalyst::Plugin::CRUD::DBIC - CRUD (create/read/update/delete) Plugin for DBIx::Class
+Catalyst::Controller::CRUD::DBIC - CRUD (create/read/update/delete) Controller for DBIx::Class
 
 =head1 SYNOPSIS
 
@@ -29,6 +29,7 @@ Catalyst::Plugin::CRUD::DBIC - CRUD (create/read/update/delete) Plugin for DBIx:
       my ( $self, $c ) = @_;
       my $hash = {
           'name'     => 'user',
+          'type'     => 'DBIC',
           'model'    => 'DBIC::UserMaster',
           'primary'  => 'id',
           'columns'  => [qw(name phone mail)],
@@ -109,6 +110,30 @@ list action.
 
 =head1 INTERNAL METHODS
 
+=head2 model_to_hashref
+
+translate model object to hash reference
+
+=cut
+
+sub model_to_hashref {
+    my ( $this, $model ) = @_;
+
+    # see http://search.cpan.org/dist/DBIx-Class-AsFdat/lib/DBIx/Class/AsFdat.pm
+    my $hash;
+    for my $column ($model->result_source->columns) {
+        $hash->{$column} = $model->$column;
+
+        # inflate the datetime
+        if (blessed $hash->{$column} and $hash->{$column}->isa('DateTime')) {
+            for my $type (qw(year month day hour minute second)) {
+                $hash->{"${column}_$type"}  = $hash->{$column}->$type;
+            }
+        }
+    }
+    return $hash;
+}
+
 =head2 get_model
 
 return model from $id.
@@ -116,7 +141,7 @@ return model from $id.
 =cut
 
 sub get_model {
-    my ( $c, $self, $id ) = @_;
+    my ( $this, $c, $self, $id ) = @_;
     my $setting = $self->setting($c);
     my $primary = $setting->{primary};
     my $model   = $c->model( $self->setting($c)->{model} )->find( $primary => $id );
@@ -132,16 +157,20 @@ return all models.
 =cut
 
 sub get_models {
-    my ( $c, $self ) = @_;
+    my ( $this, $c, $self ) = @_;
     my $setting = $self->setting($c);
     my $primary = $setting->{primary};
     my @models  = $c->model( $setting->{model} )->search( { disable => 0 }, { order_by => $primary } );
-    return @models;
+    my @result;
+    foreach (@models) {
+        push(@result, $this->model_to_hash($_));
+    }
+    return \@result;
 }
 
 =head1 SEE ALSO
 
-Catalyst::Plugin::CRUD, Class::DBI, DBIx::Class
+Catalyst::Controller::CRUD, Class::DBI, DBIx::Class
 
 =head1 AUTHOR
 
@@ -149,7 +178,7 @@ Jun Shimizu, E<lt>bayside@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006 by Jun Shimizu
+Copyright (C) 2006,2007 by Jun Shimizu
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.2 or,

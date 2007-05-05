@@ -5,12 +5,14 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 6;
+use Test::More tests => 8;
 BEGIN { use_ok('XML::Simple') };
 BEGIN { use_ok('Class::Trigger') };
 BEGIN { use_ok('Jcode') };
-BEGIN { use_ok('Catalyst::Plugin::CRUD::CDBI') };
-BEGIN { use_ok('Catalyst::Plugin::CRUD::DBIC') };
+BEGIN { use_ok('Catalyst::Plugin::CRUD') };
+BEGIN { use_ok('Catalyst::Controller::CRUD') };
+BEGIN { use_ok('Catalyst::Controller::CRUD::CDBI') };
+BEGIN { use_ok('Catalyst::Controller::CRUD::DBIC') };
 BEGIN { use_ok('Catalyst::Helper::Model::CRUD') };
 
 #########################
