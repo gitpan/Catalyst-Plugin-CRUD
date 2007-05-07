@@ -19,8 +19,11 @@ msgstr "追加"
 msgid "Update"
 msgstr "更新"
 
-msgid "Delete"
-msgstr "削除"
+msgid "Login"
+msgstr "ログイン"
+
+msgid "Logout"
+msgstr "ログアウト"
 
 msgid "TinyUrl_class_name"
 msgstr "TinyURL"

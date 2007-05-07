@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use base qw(Catalyst::Controller::CRUD);
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 =head1 NAME
 
@@ -125,7 +125,7 @@ sub model_to_hashref {
         $hash->{$column} = $model->$column;
 
         # inflate the datetime
-        if (blessed $hash->{$column} and $hash->{$column}->isa('DateTime')) {
+        if (blessed($hash->{$column}) and $hash->{$column}->isa('DateTime')) {
             for my $type (qw(year month day hour minute second)) {
                 $hash->{"${column}_$type"}  = $hash->{$column}->$type;
             }
@@ -163,7 +163,7 @@ sub get_models {
     my @models  = $c->model( $setting->{model} )->search( { disable => 0 }, { order_by => $primary } );
     my @result;
     foreach (@models) {
-        push(@result, $this->model_to_hash($_));
+        push(@result, $this->model_to_hashref($_));
     }
     return \@result;
 }

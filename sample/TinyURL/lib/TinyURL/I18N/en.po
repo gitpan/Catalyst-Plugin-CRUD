@@ -19,7 +19,10 @@ msgstr ""
 msgid "Update"
 msgstr ""
 
-msgid "Delete"
+msgid "Login"
+msgstr ""
+
+msgid "Logout"
 msgstr ""
 
 msgid "TinyUrl_class_name"

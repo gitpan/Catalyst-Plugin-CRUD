@@ -1,5 +1,9 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
+0.17 Mon Mar 7 22:14:00 2007
+    - fixed spelling mistake at Catalyst::Conroller::CRUD::DBIC
+      (Thanks to woremacx)
+
 0.16 Wed Mar 5 22:13:00 2007
 	- refactoring at Catalyst::Helper::Model::CRUD
 	- refactoring at Catalyst::Plugin::CRUD

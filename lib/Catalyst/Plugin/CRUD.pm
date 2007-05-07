@@ -5,7 +5,7 @@ use warnings;
 use Catalyst::Controller::CRUD::CDBI;
 use Catalyst::Controller::CRUD::DBIC;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 =head1 NAME
 

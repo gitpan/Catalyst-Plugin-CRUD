@@ -38,11 +38,16 @@ TinyURL - Catalyst based application
 
 =head1 SYNOPSIS
 
-    script/tinyurl_server.pl
+    cd TinyURL/sql/schema
+    createdb tinyurl
+    psql tinyurl < tiny_url.sql
+    cd ../../script
+    ./tinyurl_server.pl
 
 =head1 DESCRIPTION
 
-[enter your description here]
+This is sample Catalyst application using Catalyst::Plugin::CRUD.
+Default model uses PostgreSQL.
 
 =head1 SEE ALSO
 
@@ -50,7 +55,7 @@ L<TinyURL::Controller::Root>, L<Catalyst>
 
 =head1 AUTHOR
 
-Jun Shimizu
+Jun Shimizu, E<lt>bayside@cpan.orgE<gt>
 
 =head1 LICENSE
 
