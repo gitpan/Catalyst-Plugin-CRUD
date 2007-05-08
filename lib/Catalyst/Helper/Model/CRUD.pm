@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =head1 NAME
 
@@ -773,7 +773,7 @@ __create_tt__
 <h1>[- comment -] [% c.loc('New') %]</h1>
 
 [% IF c.stash.create.error -%]
-<p><font color="red">[% c.stash.create.message %]</font></p>
+<p><font color="red">[% c.stash.create.error %]</font></p>
 [% END -%]
 <form name="[- path_name -]" method="post" action="/[- path_name -]/create">
 <table>
@@ -795,7 +795,7 @@ __create_cs__
 <h1>[- comment -] <?cs var:loc.New ?></h1>
 
 <?cs if:create.error ?>
-<p><font color="red"><?cs var:create.message ?></font></p>
+<p><font color="red"><?cs var:create.error ?></font></p>
 <?cs /if ?>
 <form name="[- path_name -]" method="post" action="/[- path_name -]/create">
 <table>
@@ -855,7 +855,7 @@ __update_tt__
 <h1>[- comment -] [% c.loc('Edit') %]</h1>
 
 [% IF c.stash.update.error -%]
-<p><font color="red">[% c.stash.update.message %]</font></p>
+<p><font color="red">[% c.stash.update.error %]</font></p>
 [% END -%]
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
 <table border="1">
@@ -877,7 +877,7 @@ __update_cs__
 <h1>[- comment -] <?cs var:loc.Edit ?></h1>
 
 <?cs if:update.error ?>
-<p><font color="red"><?cs var:update.message ?></font></p>
+<p><font color="red"><?cs var:update.error ?></font></p>
 <?cs /if ?>
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
 <table border="1">

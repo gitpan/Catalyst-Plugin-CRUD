@@ -3,8 +3,9 @@ package Catalyst::Controller::CRUD::DBIC;
 use strict;
 use warnings;
 use base qw(Catalyst::Controller::CRUD);
+use Scalar::Util qw(blessed);
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =head1 NAME
 
@@ -15,7 +16,7 @@ Catalyst::Controller::CRUD::DBIC - CRUD (create/read/update/delete) Controller f
   # MyApp/lib/MyApp.pm
   package MyApp;
   
-  use Catalyst qw/-Debug MakeText CRUD::DBIC/;
+  use Catalyst qw/-Debug I18N CRUD Static::Simple/;
   
   1;
   
@@ -170,7 +171,7 @@ sub get_models {
 
 =head1 SEE ALSO
 
-Catalyst::Controller::CRUD, Class::DBI, DBIx::Class
+Catalyst::Controller::CRUD, DBIx::Class
 
 =head1 AUTHOR
 

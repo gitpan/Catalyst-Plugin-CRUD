@@ -1,6 +1,17 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
-0.17 Mon Mar 7 22:14:00 2007
+0.18 Tue May 8 12:32:00 2007
+	- refactoring at Catalyst::Helper::Model::CRUD
+	    - changed trigger name
+	        - create_before -> create_check
+	        - update_before -> update_check
+	        - delete_before -> delete_check
+	- refactoring at Catalyst::Controller::CRUD
+	    - changed stash name
+	        - c.stash.create.message -> c.stash.create.error
+	        - c.stash.update.message -> c.stash.update.error
+
+0.17 Mon May 7 22:14:00 2007
     - fixed spelling mistake at Catalyst::Conroller::CRUD::DBIC
       (Thanks to woremacx)
 

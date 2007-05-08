@@ -5,7 +5,7 @@ use warnings;
 use Catalyst::Controller::CRUD::CDBI;
 use Catalyst::Controller::CRUD::DBIC;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =head1 NAME
 
@@ -15,7 +15,11 @@ Catalyst::Plugin::CRUD - CRUD (create/read/update/delete) Plugin for Catalyst
 
   package MyApp;
   
-  use base qw(CRUD);
+  use Catalyst qw/-Debug ConfigLoader I18N CRUD Static::Simple/;
+  
+  1;
+  
+  package MyApp::Controller::Foo;
   
   sub create : Local {
     my ($self, $c) = @_;
@@ -30,7 +34,7 @@ This module provides CRUD (create/read/update/delete) action.
 
  create: insert new record
  read:   retrieve record
- update: update record
+ update: update already record
  delete: delete record
  list:   retrieve all records
 
@@ -43,14 +47,7 @@ None by default.
 =head2 create
 
 create action.
-
-if $c->stash->{create}->{error} is 1, then do not insert new recoed.
-
-triggers:
-
- $self->call_trigger( 'input_before', $c );
- $self->call_trigger( 'create_before', $c, $hash );
- $self->call_trigger( 'create_after', $c, $model );
+this method internally calls Catalyst::Controller::[CDBI|DBIC]::create.
 
 =cut
 
@@ -64,10 +61,7 @@ sub create {
 =head2 read
 
 read action.
-
-triggers:
-
- $self->call_trigger( 'read_before', $c );
+this method internally calls Catalyst::Controller::[CDBI|DBIC]::read.
 
 =cut
 
@@ -81,14 +75,7 @@ sub read {
 =head2 update
 
 update action.
-
-if $c->stash->{update}->{error} is 1, then do not update recoed.
-
-triggers:
-
- $self->call_trigger( 'input_before', $c );
- $self->call_trigger( 'update_before', $c, $model );
- $self->call_trigger( 'update_after', $c, $model );
+this method internally calls Catalyst::Controller::[CDBI|DBIC]::update.
 
 =cut
 
@@ -102,13 +89,7 @@ sub update {
 =head2 delete
 
 delete action.
-
-if $c->stash->{delete}->{error} is 1, then do not delete recoed.
-
-triggers:
-
- $self->call_trigger( 'delete_before', $c, $model );
- $self->call_trigger( 'delete_after', $c );
+this method internally calls Catalyst::Controller::[CDBI|DBIC]::delete.
 
 =cut
 
@@ -122,10 +103,7 @@ sub delete {
 =head2 list
 
 list action
-
-triggers:
-
- $self->call_trigger( 'list_before', $c );
+this method internally calls Catalyst::Controller::[CDBI|DBIC]::list.
 
 =cut
 
@@ -138,7 +116,7 @@ sub list {
 
 =head1 SEE ALSO
 
-Catalyst
+Catalyst, Catalyst::Controller::CRUD
 
 =head1 AUTHOR
 

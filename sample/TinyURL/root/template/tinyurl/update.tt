@@ -1,6 +1,9 @@
 [% INCLUDE template/header.tt -%]
 <h1>TinyURL [% c.loc('Edit') %]</h1>
 
+[% IF c.stash.update.error -%]
+<p><font color="red">[% c.stash.update.error %]</font></p>
+[% END -%]
 <form name="tinyurl" method="post" action="/tinyurl/update">
 <table border="1">
   <tr>

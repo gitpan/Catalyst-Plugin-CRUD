@@ -3,7 +3,7 @@ package Catalyst::Controller::CRUD;
 use strict;
 use warnings;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =head1 NAME
 
@@ -29,7 +29,7 @@ This module provides CRUD (create/read/update/delete) action.
 
  create: insert new record
  read:   retrieve record
- update: update record
+ update: update already record
  delete: delete record
  list:   retrieve all records
 
@@ -43,56 +43,30 @@ None by default.
 
 create action.
 
-if $c->stash->{create}->{error} is 1, then do not insert new recoed.
+if $c->stash->{create}->{error}, then do not insert new recoed.
 
 triggers:
 
  $self->call_trigger( 'input_before', $c );
- $self->call_trigger( 'create_before', $c, $hash );
+ $self->call_trigger( 'create_check', $c, $hash );
  $self->call_trigger( 'create_after', $c, $model );
 
 =cut
 
 sub create {
     my ( $this, $c, $self ) = @_;
-    my $setting = $self->setting($c);
-    my @columns = @{ $setting->{columns} };
 
     # insert new record
     if ( $c->req->param('btn_create') ) {
-        my $hash;
-        for my $column (@columns) {
-            my $param = $c->req->param($column);
-            $hash->{$column} = $param
-              if ( defined $param && length($param) > 0 );
-        }
-        $self->call_trigger( 'create_before', $c, $hash );
-        unless ( $c->stash->{create}->{error} ) {
-            my $model = $c->model( $self->setting($c)->{model} )->create($hash);
-            $self->call_trigger( 'create_after', $c, $model );
-            return $c->res->redirect( $self->setting($c)->{default} );
-        }
-
-        # create error
-        else {
-            $self->call_trigger( 'input_before', $c );
-        }
+        $this->_do_create($c, $self);
     }
 
-    # for /xxx/copy/yyy
+    # prepare for xxx/create/yyy
     elsif ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
-        my $model = $this->get_model($c, $self, $c->req->args->[0]);
-        if ( defined $model ) {
-            for my $item (@columns) {
-                if ( $model->can($item) ) {
-                    $c->req->params->{$item} = $model->$item;
-                }
-            }
-        }
-        $self->call_trigger( 'input_before', $c );
+        $this->_prepare_copy($c, $self);
     }
 
-    # initial input
+    # prepare create form
     else {
         $self->call_trigger( 'input_before', $c );
     }
@@ -104,34 +78,27 @@ sub create {
 
 read action.
 
-triggers:
-
- $self->call_trigger( 'read_before', $c );
-
 =cut
 
 sub read {
     my ( $this, $c, $self ) = @_;
-    my $setting = $self->setting($c);
-    my @columns = @{ $setting->{columns} };
 
     # prepare read form
     if ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
         my $model = $this->get_model($c, $self, $c->req->args->[0]);
         if ( defined $model ) {
             $c->stash->{ $self->setting($c)->{name} } = $this->model_to_hashref($model);
-            $self->call_trigger( 'read_before', $c );
         }
 
         # read error
         else {
-            return $c->res->redirect( $self->setting($c)->{default} );
+            $c->res->redirect( $self->setting($c)->{default} );
         }
     }
 
     # read error
     else {
-        return $c->res->redirect( $self->setting($c)->{default} );
+        $c->res->redirect( $self->setting($c)->{default} );
     }
 
     $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{read};
@@ -141,40 +108,22 @@ sub read {
 
 update action.
 
-if $c->stash->{update}->{error} is 1, then do not update recoed.
+if $c->stash->{update}->{error}, then do not update already recoed.
 
 triggers:
 
  $self->call_trigger( 'input_before', $c );
- $self->call_trigger( 'update_before', $c, $model );
+ $self->call_trigger( 'update_check', $c, $model );
  $self->call_trigger( 'update_after', $c, $model );
 
 =cut
 
 sub update {
     my ( $this, $c, $self ) = @_;
-    my $setting = $self->setting($c);
-    my $primary = $setting->{primary};
-    my @columns = @{ $setting->{columns} };
 
     # update already record
     if ( $c->req->param('btn_update') ) {
-        my $model = $this->get_model($c, $self, $c->req->param($primary));
-        for my $column (@columns) {
-            $model->$column( $c->req->param($column) )
-              if ( $model->can($column) );
-        }
-        $self->call_trigger( 'update_before', $c, $model );
-        unless ( $c->stash->{update}->{error} ) {
-            $model->update();
-            $self->call_trigger( 'update_after', $c, $model );
-            return $c->res->redirect( $self->setting($c)->{default} );
-        }
-
-        # update error
-        else {
-            $self->call_trigger( 'input_before', $c );
-        }
+        $this->_do_update($c,$self);
     }
 
     # prepare update form
@@ -196,27 +145,26 @@ sub update {
 
 delete action.
 
-if $c->stash->{delete}->{error} is 1, then do not delete recoed.
+if $c->stash->{delete}->{error}, then do not delete recoed.
 
 triggers:
 
- $self->call_trigger( 'delete_before', $c, $model );
- $self->call_trigger( 'delete_after', $c );
+ $self->call_trigger( 'delete_check', $c, $model );
+ $self->call_trigger( 'delete_after', $c, $model );
 
 =cut
 
 sub delete {
     my ( $this, $c, $self ) = @_;
-    my $setting = $self->setting($c);
 
     # delete record
     if ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
         my $model = $this->get_model($c, $self, $c->req->args->[0]);
-        $self->call_trigger( 'delete_before', $c, $model );
+        $self->call_trigger( 'delete_check', $c, $model );
         unless ( $c->stash->{delete}->{error} ) {
             $model->disable(1);
             $model->update();
-            $self->call_trigger( 'delete_after', $c );
+            $self->call_trigger( 'delete_after', $c, $model );
         }
     }
 
@@ -225,27 +173,23 @@ sub delete {
 
 =head2 list
 
-list action
-
-triggers:
-
- $self->call_trigger( 'list_before', $c );
+list action.
 
 =cut
 
 sub list {
     my ( $this, $c, $self ) = @_;
-    my $setting = $self->setting($c);
-    $c->stash->{ $setting->{name} . 's' } = $this->get_models($c, $self);
-    $c->stash->{template} = $setting->{template}->{prefix} . $setting->{template}->{list};
-    $self->call_trigger( 'list_before', $c );
+
+    $c->stash->{ $self->setting($c)->{name} . 's' } = $this->get_models($c, $self);
+    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{list};
 }
 
-=head1 INTERNAL METHODS
+=head1 INTERFACE METHODS
 
 =head2 model_to_hashref($this,$model)
 
-translate model object to hash reference
+translate model object to hash reference.
+this method must be implemented by sub class.
 
 =cut
 
@@ -255,7 +199,8 @@ sub model_to_hashref {
 
 =head2 get_model($this,$c,$self,$id)
 
-return model from $id. this method is implemented by sub class.
+return model from $id.
+this method must be implemented by sub class.
 
 =cut
 
@@ -263,11 +208,10 @@ sub get_model {
     die 'this method must be overriden in the subclass.';
 }
 
-=cut
-
 =head2 get_models($this,$c,$self)
 
-return all models. this method is implemented by sub class.
+return all models.
+this method must be implemented by sub class.
 
 =cut
 
@@ -275,9 +219,98 @@ sub get_models {
     die 'this method must be overriden in the subclass.';
 }
 
+=head1 INTERNAL METHODS
+
+=head2 _do_create($this,$c,$self)
+
+insert new record.
+
+=cut
+
+sub _do_create {
+    my ( $this, $c, $self ) = @_;
+
+    my @columns = @{ $self->setting($c)->{columns} };
+    my $hash;
+    for my $column (@columns) {
+        my $param = $c->req->param($column);
+        $hash->{$column} = $param
+            if ( defined $param && length($param) > 0 );
+    }
+
+    $self->call_trigger( 'create_check', $c, $hash );
+
+    # create error
+    if ( $c->stash->{create}->{error} ) {
+        $self->call_trigger( 'input_before', $c );
+    }
+
+    # insert new record
+    else {
+        my $model = $c->model( $self->setting($c)->{model} )->create($hash);
+        $self->call_trigger( 'create_after', $c, $model );
+        $c->res->redirect( $self->setting($c)->{default} );
+    }
+}
+
+=head2 _prepare_copy($this,$c,$self)
+
+prepare for /xxx/create/yyy.
+
+=cut
+
+sub _prepare_copy {
+    my ( $this, $c, $self ) = @_;
+
+    my $model = $this->get_model($c, $self, $c->req->args->[0]);
+    return unless defined $model;
+
+    my @columns = @{ $self->setting($c)->{columns} };
+    for my $item (@columns) {
+        if ( $model->can($item) ) {
+            $c->req->params->{$item} = $model->$item;
+        }
+    }
+    $self->call_trigger( 'input_before', $c );
+}
+
+=head2 _do_update($this,$c,$self)
+
+update already record.
+
+=cut
+
+sub _do_update {
+    my ( $this, $c, $self ) = @_;
+
+    my $model = $this->get_model($c, $self, $c->req->param($self->setting($c)->{primary}));
+    return unless defined $model;
+
+    my @columns = @{ $self->setting($c)->{columns} };
+    for my $column (@columns) {
+        $model->$column( $c->req->param($column) )
+            if ( $model->can($column) );
+    }
+
+    $self->call_trigger( 'update_check', $c, $model );
+
+    # update error
+    if ( $c->stash->{update}->{error} ) {
+        $c->stash->{ $self->setting($c)->{name} } = $this->model_to_hashref($model);
+        $self->call_trigger( 'input_before', $c );
+    }
+
+    # update already record
+    else {
+        $model->update();
+        $self->call_trigger( 'update_after', $c, $model );
+        $c->res->redirect( $self->setting($c)->{default} );
+    }
+}
+
 =head1 SEE ALSO
 
-Catalyst
+Catalyst, Catalyst::Plugin::CRUD
 
 =head1 AUTHOR
 
