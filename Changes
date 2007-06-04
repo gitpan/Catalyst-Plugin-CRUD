@@ -1,5 +1,17 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
+0.19 Tue Jun 5 03:27:00 2007
+    - wrote tutorials
+        - http://d.hatena.ne.jp/Bayside/20070511/p1
+        - http://d.hatena.ne.jp/Bayside/20070512/p1
+        - http://d.hatena.ne.jp/Bayside/20070513/p1
+        - http://d.hatena.ne.jp/Bayside/20070514/p1
+    - when deleting, use Widget::Dialog (you can get from JSAN)
+    - changed Catalyst::Controller::CRUD::CDBI::model_to_hashref to Class::DBI::toHashRef
+        - ref) my $hash = $c->model('CDBI::Foo')->retrieve(1)->toHashRef;
+    - changed Catalyst::Controller::CRUD::DBIC::model_to_hashref to DBIx::Class::toHashRef
+        - ref) my $hash = $c->model('DBIC::Foo')->find(1)->toHashRef;
+
 0.18 Tue May 8 12:32:00 2007
 	- refactoring at Catalyst::Helper::Model::CRUD
 	    - changed trigger name

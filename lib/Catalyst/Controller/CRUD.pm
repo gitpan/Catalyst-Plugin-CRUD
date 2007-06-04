@@ -3,7 +3,7 @@ package Catalyst::Controller::CRUD;
 use strict;
 use warnings;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
@@ -41,11 +41,11 @@ None by default.
 
 =head2 create
 
-create action.
+Create action.
 
-if $c->stash->{create}->{error}, then do not insert new recoed.
+If there is $c->stash->{create}->{error}, then it does not insert new recoed.
 
-triggers:
+Triggers:
 
  $self->call_trigger( 'input_before', $c );
  $self->call_trigger( 'create_check', $c, $hash );
@@ -71,12 +71,14 @@ sub create {
         $self->call_trigger( 'input_before', $c );
     }
 
-    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{create};
+    my $prefix = $self->setting($c)->{template}->{prefix};
+    my $suffix = $self->setting($c)->{template}->{suffix} ? $self->setting($c)->{template}->{suffix} : '.tt';
+    $c->stash->{template} = $prefix . $c->action->name . $suffix;
 }
 
 =head2 read
 
-read action.
+Read action.
 
 =cut
 
@@ -87,7 +89,7 @@ sub read {
     if ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
         my $model = $this->get_model($c, $self, $c->req->args->[0]);
         if ( defined $model ) {
-            $c->stash->{ $self->setting($c)->{name} } = $this->model_to_hashref($model);
+            $c->stash->{ $self->setting($c)->{name} } = $model->toHashRef;
         }
 
         # read error
@@ -101,16 +103,18 @@ sub read {
         $c->res->redirect( $self->setting($c)->{default} );
     }
 
-    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{read};
+    my $prefix = $self->setting($c)->{template}->{prefix};
+    my $suffix = $self->setting($c)->{template}->{suffix} ? $self->setting($c)->{template}->{suffix} : '.tt';
+    $c->stash->{template} = $prefix . $c->action->name . $suffix;
 }
 
 =head2 update
 
-update action.
+Update action.
 
-if $c->stash->{update}->{error}, then do not update already recoed.
+If there is $c->stash->{update}->{error}, then it does not update already recoed.
 
-triggers:
+Triggers:
 
  $self->call_trigger( 'input_before', $c );
  $self->call_trigger( 'update_check', $c, $model );
@@ -129,7 +133,7 @@ sub update {
     # prepare update form
     elsif ( defined $c->req->args->[0] and $c->req->args->[0] =~ /^\d+$/ ) {
         my $model = $this->get_model($c, $self, $c->req->args->[0]);
-        $c->stash->{ $self->setting($c)->{name} } = $this->model_to_hashref($model);
+        $c->stash->{ $self->setting($c)->{name} } = $model->toHashRef;
         $self->call_trigger( 'input_before', $c );
     }
 
@@ -138,16 +142,18 @@ sub update {
         return $c->res->redirect( $self->setting($c)->{default} );
     }
 
-    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{update};
+    my $prefix = $self->setting($c)->{template}->{prefix};
+    my $suffix = $self->setting($c)->{template}->{suffix} ? $self->setting($c)->{template}->{suffix} : '.tt';
+    $c->stash->{template} = $prefix . $c->action->name . $suffix;
 }
 
 =head2 delete
 
-delete action.
+Delete action.
 
-if $c->stash->{delete}->{error}, then do not delete recoed.
+If there is $c->stash->{delete}->{error}, then it does not delete recoed.
 
-triggers:
+Triggers:
 
  $self->call_trigger( 'delete_check', $c, $model );
  $self->call_trigger( 'delete_after', $c, $model );
@@ -173,7 +179,7 @@ sub delete {
 
 =head2 list
 
-list action.
+List action.
 
 =cut
 
@@ -181,26 +187,18 @@ sub list {
     my ( $this, $c, $self ) = @_;
 
     $c->stash->{ $self->setting($c)->{name} . 's' } = $this->get_models($c, $self);
-    $c->stash->{template} = $self->setting($c)->{template}->{prefix} . $self->setting($c)->{template}->{list};
+
+    my $prefix = $self->setting($c)->{template}->{prefix};
+    my $suffix = $self->setting($c)->{template}->{suffix} ? $self->setting($c)->{template}->{suffix} : '.tt';
+    $c->stash->{template} = $prefix . $c->action->name . $suffix;
 }
 
 =head1 INTERFACE METHODS
 
-=head2 model_to_hashref($this,$model)
-
-translate model object to hash reference.
-this method must be implemented by sub class.
-
-=cut
-
-sub model_to_hashref {
-    die 'this method must be overriden in the subclass.';
-}
-
 =head2 get_model($this,$c,$self,$id)
 
-return model from $id.
-this method must be implemented by sub class.
+This method returns model object having $id.
+This method must be implemented by sub class.
 
 =cut
 
@@ -210,8 +208,8 @@ sub get_model {
 
 =head2 get_models($this,$c,$self)
 
-return all models.
-this method must be implemented by sub class.
+This method returns model objects.
+This method must be implemented by sub class.
 
 =cut
 
@@ -223,7 +221,7 @@ sub get_models {
 
 =head2 _do_create($this,$c,$self)
 
-insert new record.
+Insert new record.
 
 =cut
 
@@ -235,7 +233,7 @@ sub _do_create {
     for my $column (@columns) {
         my $param = $c->req->param($column);
         $hash->{$column} = $param
-            if ( defined $param && length($param) > 0 );
+            if ( defined $param );
     }
 
     $self->call_trigger( 'create_check', $c, $hash );
@@ -247,15 +245,17 @@ sub _do_create {
 
     # insert new record
     else {
-        my $model = $c->model( $self->setting($c)->{model} )->create($hash);
-        $self->call_trigger( 'create_after', $c, $model );
+        if ( scalar(keys %{$hash}) ) {
+            my $model = $c->model( $self->setting($c)->{model} )->create($hash);
+            $self->call_trigger( 'create_after', $c, $model );
+        }
         $c->res->redirect( $self->setting($c)->{default} );
     }
 }
 
 =head2 _prepare_copy($this,$c,$self)
 
-prepare for /xxx/create/yyy.
+Prepare for /xxx/create/yyy.
 
 =cut
 
@@ -276,7 +276,7 @@ sub _prepare_copy {
 
 =head2 _do_update($this,$c,$self)
 
-update already record.
+Update already record.
 
 =cut
 
@@ -296,7 +296,7 @@ sub _do_update {
 
     # update error
     if ( $c->stash->{update}->{error} ) {
-        $c->stash->{ $self->setting($c)->{name} } = $this->model_to_hashref($model);
+        $c->stash->{ $self->setting($c)->{name} } = $model->toHashRef;
         $self->call_trigger( 'input_before', $c );
     }
 

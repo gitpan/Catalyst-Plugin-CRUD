@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
@@ -32,7 +32,7 @@ my @tables;
 
 =head2 encode($str)
 
-translate comment of DBDesigner4 to UTF-8
+This method translates comment of DBDesigner4 to UTF-8.
 
 =cut
 
@@ -74,7 +74,7 @@ sub encode {
 
 =head2 get_class_name($str)
 
-translate hoge_fuga_master to HogeFugaMaster
+This method translates hoge_fuga_master to HogeFugaMaster.
 
 =cut
 
@@ -96,7 +96,7 @@ sub get_class_name {
 
 =head2 get_relation($relation_id)
 
-get relation of appointed ID
+This method returns relation of appointed ID.
 
 =cut
 
@@ -111,7 +111,7 @@ sub get_relation {
 
 =head2 get_table($table_id)
 
-get table of appointed ID
+This methods returns table of appointed ID.
 
 =cut
 
@@ -126,7 +126,7 @@ sub get_table {
 
 =head2 get_setting_index($array, $name)
 
-get setting number of appointed name
+This method returns setting number of appointed name.
 
 =cut
 
@@ -142,7 +142,7 @@ sub get_setting_index {
 
 =head2 get_primary(@sqls)
 
-get primary key name
+This method returns primary key name.
 
 =cut
 
@@ -158,7 +158,7 @@ sub get_primary {
 
 =head2 get_columns(@sqls)
 
-get columns string
+This method returns columns string.
 
 =cut
 
@@ -174,7 +174,7 @@ sub get_columns {
 
 =head2 mk_compclass($helper, $file, @limited_file)
 
-analyse DBDesigner 4 file and generate sqls, controllers and templates
+This method analyse DBDesigner 4 file and generate sqls, controllers and templates.
 
 =cut
 
@@ -492,6 +492,7 @@ sub mk_compclass {
         $helper->render_file( 'read_tt',   "$template_dir/$path_name/read.tt",   $controller_vars );
         $helper->render_file( 'update_tt', "$template_dir/$path_name/update.tt", $controller_vars );
         $helper->render_file( 'list_tt',   "$template_dir/$path_name/list.tt",   $controller_vars );
+
         $helper->render_file( 'create_cs', "$template_dir/$path_name/create.cs", $controller_vars );
         $helper->render_file( 'read_cs',   "$template_dir/$path_name/read.cs",   $controller_vars );
         $helper->render_file( 'update_cs', "$template_dir/$path_name/update.cs", $controller_vars );
@@ -499,18 +500,25 @@ sub mk_compclass {
     }
 
     # ヘッダー・フッター出力
-    my $header_footer_vars;
-    $header_footer_vars->{'app_name'} = $helper->{'app'};
-    $helper->render_file( 'header_html', "$template_dir/header.tt", $header_footer_vars );
-    $helper->render_file( 'footer_html', "$template_dir/footer.tt", $header_footer_vars );
-    $helper->render_file( 'header_html', "$template_dir/header.cs", $header_footer_vars );
-    $helper->render_file( 'footer_html', "$template_dir/footer.cs", $header_footer_vars );
+    unless ( scalar @limited_file ) {
+        my $header_footer_vars;
+        $header_footer_vars->{'app_name'} = $helper->{'app'};
+        $helper->render_file( 'header_html', "$template_dir/header.tt", $header_footer_vars );
+        $helper->render_file( 'footer_html', "$template_dir/footer.tt", $header_footer_vars );
+        $helper->render_file( 'header_html', "$template_dir/header.cs", $header_footer_vars );
+        $helper->render_file( 'footer_html', "$template_dir/footer.cs", $header_footer_vars );
+    }
 
     # 言語ファイル出力
     my $i18n_vars;
     $i18n_vars->{'keywords'} = \@keywords;
-    $helper->render_file( 'ja_po', "$i18n_dir/ja.po", $i18n_vars );
-    $helper->render_file( 'en_po', "$i18n_dir/en.po", $i18n_vars );
+    if ( scalar @limited_file ) {
+        $helper->render_file( 'ja_po', "$i18n_dir/ja.po", $i18n_vars );
+        $helper->render_file( 'en_po', "$i18n_dir/en.po", $i18n_vars );
+    } else {
+        $helper->render_file( 'mini_ja_po', "$i18n_dir/ja.po", $i18n_vars );
+        $helper->render_file( 'mini_en_po', "$i18n_dir/en.po", $i18n_vars );
+    }
 
     print "==========================================================\n";
 }
@@ -540,7 +548,7 @@ at your option, any later version of Perl 5 you may have available.
 __DATA__
 
 __schema_sql__
-DROP TABLE [% table %];
+-- DROP TABLE [% table %];
 
 -- [% comment %]
 CREATE TABLE [% table %] (
@@ -599,10 +607,7 @@ sub setting {
         'default'  => '/[% path_name %]/list',
         'template' => {
             'prefix' => 'template/[% path_name %]/',
-            'create' => 'create.tt',
-            'read'   => 'read.tt',
-            'update' => 'update.tt',
-            'list'   => 'list.tt'
+            'suffix' => '.tt'
         },
     };
     return $hash;
@@ -616,6 +621,8 @@ __header_html__
   <head>
     <title>[% app_name %]</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!-- http://openjsan.org/doc/k/ko/komagata/Widget/Dialog/ -->
+    <script type="text/javascript" src="/static/js/Widget/Dialog.js"></script>
     <!-- link rel="stylesheet" href="styles.css" / -->
     <style type="text/css">
     <!--
@@ -770,6 +777,7 @@ __footer_html__
 __create_tt__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.tt -%]
+
 <h1>[- comment -] [% c.loc('New') %]</h1>
 
 [% IF c.stash.create.error -%]
@@ -787,11 +795,13 @@ __create_tt__
   </tr>
 </table>
 </form>
+
 [% INCLUDE template/footer.tt -%]
 
 __create_cs__
 [% TAGS [- -] -%]
 <?cs include:"template/header.cs" ?>
+
 <h1>[- comment -] <?cs var:loc.New ?></h1>
 
 <?cs if:create.error ?>
@@ -809,11 +819,13 @@ __create_cs__
   </tr>
 </table>
 </form>
+
 <?cs include:"template/footer.cs" ?>
 
 __read_tt__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.tt -%]
+
 <h1>[- comment -] [% c.loc('Detail') %]</h1>
 
 <form>
@@ -821,18 +833,20 @@ __read_tt__
   <br/>
 </form>
 
-<table border="1">
+<table>
 [- FOREACH sql = sqls --]
   <tr>
     <td>[% c.loc('[- sql.desc -]') %]</td><td>[% c.stash.[- path_name -].[- sql.name -] %]</td>
   </tr>
 [- END --]
 </table>
+
 [% INCLUDE template/footer.tt -%]
 
 __read_cs__
 [% TAGS [- -] -%]
 <?cs include:"template/header.cs" ?>
+
 <h1>[- comment -] <?cs var:loc.Detail ?></h1>
 
 <form>
@@ -840,25 +854,27 @@ __read_cs__
   <br/>
 </form>
 
-<table border="1">
+<table>
 [- FOREACH sql = sqls --]
   <tr>
     <td><?cs var:loc.[- sql.desc -] ?></td><td><?cs var:[- path_name -].[- sql.name -] ?></td>
   </tr>
 [- END --]
 </table>
+
 <?cs include:"template/footer.cs" ?>
 
 __update_tt__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.tt -%]
+
 <h1>[- comment -] [% c.loc('Edit') %]</h1>
 
 [% IF c.stash.update.error -%]
 <p><font color="red">[% c.stash.update.error %]</font></p>
 [% END -%]
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
-<table border="1">
+<table>
 [- FOREACH sql = sqls --]
   <tr>
     <td>[% c.loc('[- sql.desc -]') %]</td><td><input type="text" name="[- sql.name -]" size="25" value="[% c.stash.[- path_name -].[- sql.name -] %]"></td>
@@ -869,18 +885,20 @@ __update_tt__
   </tr>
 </table>
 </form>
+
 [% INCLUDE template/footer.tt -%]
 
 __update_cs__
 [% TAGS [- -] -%]
 <?cs include:"template/header.cs" ?>
+
 <h1>[- comment -] <?cs var:loc.Edit ?></h1>
 
 <?cs if:update.error ?>
 <p><font color="red"><?cs var:update.error ?></font></p>
 <?cs /if ?>
 <form name="[- path_name -]" method="post" action="/[- path_name -]/update">
-<table border="1">
+<table>
 [- FOREACH sql = sqls --]
   <tr>
     <td><?cs var:loc.[- sql.desc -] ?></td><td><input type="text" name="[- sql.name -]" size="25" value="<?cs var:[- path_name -].[- sql.name -] ?>"></td>
@@ -891,11 +909,13 @@ __update_cs__
   </tr>
 </table>
 </form>
+
 <?cs include:"template/footer.cs" ?>
 
 __list_tt__
 [% TAGS [- -] -%]
 [% INCLUDE template/header.tt -%]
+
 <h1>[- comment -] [% c.loc('List') %]</h1>
 
 <form>
@@ -903,7 +923,22 @@ __list_tt__
   <br/>
 </form>
 
-<table border="1">
+<script>
+<!--
+function confirmDelete(name, id) {
+    var dialog = new Widget.Dialog;
+    dialog.confirm('Can you delete ' + name + ' ?', {
+        width: 300,
+        height: 70,
+        onOk: function(val) {
+            window.location = '/[- path_name -]/delete/' + id;
+        }
+    });
+}
+//-->
+</script>
+
+<table>
 <tr>
 [- FOREACH sql = sqls --]
   <th>[% c.loc('[- sql.desc -]') %]</th>
@@ -919,15 +954,17 @@ __list_tt__
 [- END --]
   <td><a href="/[- path_name -]/read/[% [- path_name -].[- primary -] %]">[% c.loc('Detail') %]</a></td>
   <td><a href="/[- path_name -]/update/[% [- path_name -].[- primary -] %]">[% c.loc('Edit') %]</a></td>
-  <td><a href="/[- path_name -]/delete/[% [- path_name -].[- primary -] %]">[% c.loc('Delete') %]</a></td>
+  <td><a href="#" onClick="confirmDelete('[% [- path_name -].[- primary -] %]',[% [- path_name -].[- primary -] %]);return false;">[% c.loc('Delete') %]</a></td>
 </tr>
 [% END -%]
 </table>
+
 [% INCLUDE template/footer.tt -%]
 
 __list_cs__
 [% TAGS [- -] -%]
 <?cs include:"template/header.cs" ?>
+
 <h1>[- comment -] <?cs var:loc.List ?></h1>
 
 <form>
@@ -935,7 +972,22 @@ __list_cs__
   <br/>
 </form>
 
-<table border="1">
+<script>
+<!--
+function confirmDelete(name, id) {
+    var dialog = new Widget.Dialog;
+    dialog.confirm('Can you delete ' + name + ' ?', {
+        width: 300,
+        height: 70,
+        onOk: function(val) {
+            window.location = '/[- path_name -]/delete/' + id;
+        }
+    });
+}
+//-->
+</script>
+
+<table>
 <tr>
 [- FOREACH sql = sqls --]
   <th><?cs var:loc.[- sql.desc -] ?></th>
@@ -951,10 +1003,11 @@ __list_cs__
 [- END --]
   <td><a href="/[- path_name -]/read/<?cs var:[- path_name -].[- primary -] ?>"><?cs var:loc.Detail ?></a></td>
   <td><a href="/[- path_name -]/update/<?cs var:[- path_name -].[- primary -] ?>"><?cs var:loc.Edit ?></a></td>
-  <td><a href="/[- path_name -]/delete/<?cs var:[- path_name -].[- primary -] ?>"><?cs var:loc.Delete ?></a></td>
+  <td><a href="#" onClick="confirmDelete('<?cs var:[- path_name -].[- primary -] ?>',<?cs var:[- path_name -].[- primary -] ?>);return false;"><?cs var:loc.Delete ?></a></td>
 </tr>
 <?cs /each ?>
 </table>
+
 <?cs include:"template/footer.cs" ?>
 
 __ja_po__
@@ -979,12 +1032,22 @@ msgstr "追加"
 msgid "Update"
 msgstr "更新"
 
+msgid "Search"
+msgstr "検索"
+
 msgid "Login"
 msgstr "ログイン"
 
 msgid "Logout"
 msgstr "ログアウト"
 
+[% FOREACH keyword = keywords -%]
+msgid "[% keyword.name -%]"
+msgstr "[% keyword.desc_ja -%]"
+
+[% END -%]
+
+__mini_ja_po__
 [% FOREACH keyword = keywords -%]
 msgid "[% keyword.name -%]"
 msgstr "[% keyword.desc_ja -%]"
@@ -1013,12 +1076,22 @@ msgstr ""
 msgid "Update"
 msgstr ""
 
+msgid "Search"
+msgstr ""
+
 msgid "Login"
 msgstr ""
 
 msgid "Logout"
 msgstr ""
 
+[% FOREACH keyword = keywords -%]
+msgid "[% keyword.name -%]"
+msgstr "[% keyword.desc_en -%]"
+
+[% END -%]
+
+__mini_en_po__
 [% FOREACH keyword = keywords -%]
 msgid "[% keyword.name -%]"
 msgstr "[% keyword.desc_en -%]"

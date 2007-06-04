@@ -4,22 +4,24 @@ use strict;
 use warnings;
 use base qw(Catalyst::Controller::CRUD);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
-Catalyst::Controller::CRUD::CDBI - CRUD (create/read/update/delete) Controller for Class::DBI
+Catalyst::Controller::CRUD::CDBI - Implementation for Catalyst::Controller::CRUD
 
 =head1 SYNOPSIS
 
-  # MyApp/lib/MyApp.pm
+=head2 MyApp/lib/MyApp.pm
+
   package MyApp;
   
   use Catalyst qw/-Debug I18N CRUD Static::Simple/;
   
   1;
   
-  # MyApp/lib/MyApp/Controller/User.pm
+=head2 MyApp/lib/MyApp/Controller/User.pm
+
   package MyApp::Controller::User;
   
   use base 'Catalyst::Controller';
@@ -36,10 +38,7 @@ Catalyst::Controller::CRUD::CDBI - CRUD (create/read/update/delete) Controller f
           'default'  => '/user/list',
           'template' => {
               'prefix' => 'template/user/',
-              'create' => 'create.tt',
-              'read'   => 'read.tt',
-              'update' => 'update.tt',
-              'list'   => 'list.tt'
+              'suffix' => '.tt'
           },
       };
       return $hash;
@@ -52,35 +51,12 @@ Catalyst::Controller::CRUD::CDBI - CRUD (create/read/update/delete) Controller f
   
   1;
 
-  <!-- MyApp/root/template/user/create.tt -->
-  <html>
-  <body>
-  <h1>Create New User</h1>
-  <form name="user" method="post" action="/user/create">
-  <table>
-    <tr>
-      <td>User Name</td><td><input  type="text" name="name"  value="[% c.req.param('name') %]"></td>
-    </tr>
-    <tr>
-      <td>User Phone</td><td><input type="text" name="phone" value="[% c.req.param('phone') %]"></td>
-    </tr>
-    <tr>
-      <td>User Email</td><td><input type="text" name="mail"  value="[% c.req.param('mail') %]"></td>
-    </tr>
-  </table>
-  </form>
-  </body>
-  </html>
-
 =head1 DESCRIPTION
 
-This module provides CRUD (create/read/update/delete) action using with Class::DBI.
+This module implements Class::DBI depend interfaces for Catalyst::Controller::CRUD.
 
- create: insert new record
- read:   retrieve record
- update: update record
- delete: delete record
- list:   retrieve all records
+ - get_model
+ - get_models
 
 =head2 EXPORT
 
@@ -88,44 +64,9 @@ None by default.
 
 =head1 METHODS
 
-=head2 create
+=head2 get_model($this,$c,$self,$id)
 
-create action.
-
-=head2 read
-
-read action.
-
-=head2 update
-
-update action.
-
-=head2 delete
-
-delete action.
-
-=head2 list
-
-list action.
-
-=head1 INTERNAL METHODS
-
-=head2 model_to_hashref
-
-translate model object to hash reference
-
-=cut
-
-sub model_to_hashref {
-    my ( $this, $model ) = @_;
-
-    my %hash = $model->_as_hash;
-    return \%hash;
-}
-
-=head2 get_model
-
-return model from $id.
+This method returns model object having $id.
 
 =cut
 
@@ -137,22 +78,30 @@ sub get_model {
     return $model;
 }
 
-=cut
+=head2 get_models($this,$c,$self)
 
-=head2 get_models
+This method returns model objects.
 
-return all models.
+Triggers:
+
+ $self->call_trigger( 'list_where_make_phrase', $c, $where );
+ $self->call_trigger( 'list_order_make_phrase', $c, $order );
 
 =cut
 
 sub get_models {
     my ( $this, $c, $self ) = @_;
-    my $setting = $self->setting($c);
-    my $primary = $setting->{primary};
-    my @models  = $c->model( $setting->{model} )->search_where( { disable => 0 }, { order_by => $primary } );
+
+    my $where = { disable => 0 };
+    $self->call_trigger( 'list_where_make_phrase', $c, $where );
+
+    my $order = { order_by => $self->setting($c)->{primary} };
+    $self->call_trigger( 'list_order_make_phrase', $c, $order );
+
+    my @models  = $c->model( $self->setting($c)->{model} )->search_where( $where, $order );
     my @result;
     foreach (@models) {
-        push(@result, $this->model_to_hashref($_));
+        push(@result, $_->toHashRef);
     }
     return \@result;
 }

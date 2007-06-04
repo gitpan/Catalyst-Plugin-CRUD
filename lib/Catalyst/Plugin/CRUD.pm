@@ -4,8 +4,9 @@ use strict;
 use warnings;
 use Catalyst::Controller::CRUD::CDBI;
 use Catalyst::Controller::CRUD::DBIC;
+use Scalar::Util qw(blessed);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
@@ -46,8 +47,8 @@ None by default.
 
 =head2 create
 
-create action.
-this method internally calls Catalyst::Controller::[CDBI|DBIC]::create.
+Create action.
+This method internally calls Catalyst::Controller::[CDBI|DBIC]::create.
 
 =cut
 
@@ -60,8 +61,8 @@ sub create {
 
 =head2 read
 
-read action.
-this method internally calls Catalyst::Controller::[CDBI|DBIC]::read.
+Read action.
+This method internally calls Catalyst::Controller::[CDBI|DBIC]::read.
 
 =cut
 
@@ -74,8 +75,8 @@ sub read {
 
 =head2 update
 
-update action.
-this method internally calls Catalyst::Controller::[CDBI|DBIC]::update.
+Update action.
+This method internally calls Catalyst::Controller::[CDBI|DBIC]::update.
 
 =cut
 
@@ -88,8 +89,8 @@ sub update {
 
 =head2 delete
 
-delete action.
-this method internally calls Catalyst::Controller::[CDBI|DBIC]::delete.
+Delete action.
+This method internally calls Catalyst::Controller::[CDBI|DBIC]::delete.
 
 =cut
 
@@ -102,8 +103,8 @@ sub delete {
 
 =head2 list
 
-list action
-this method internally calls Catalyst::Controller::[CDBI|DBIC]::list.
+List action
+This method internally calls Catalyst::Controller::[CDBI|DBIC]::list.
 
 =cut
 
@@ -112,6 +113,39 @@ sub list {
     my $type = $self->setting($c)->{type} || 'CDBI';
     my $cntl = "Catalyst::Controller::CRUD::" . $type;
     $cntl->list($c, $self);
+}
+
+=head2 Class::DBI::toHashRef
+
+=cut
+
+sub Class::DBI::toHashRef {
+    my ( $self ) = @_;
+
+    my %hash = $self->_as_hash;
+    return \%hash;
+}
+
+=head2 DBIx::Class::toHashRef
+
+=cut
+
+sub DBIx::Class::toHashRef {
+    my ( $self ) = @_;
+
+    # see http://search.cpan.org/dist/DBIx-Class-AsFdat
+    my $hash;
+    for my $column ($self->result_source->columns) {
+        $hash->{$column} = $self->$column;
+
+        # inflate the datetime
+        if (blessed($hash->{$column}) and $hash->{$column}->isa('DateTime')) {
+            for my $type (qw(year month day hour minute second)) {
+                $hash->{"${column}_$type"}  = $hash->{$column}->$type;
+            }
+        }
+    }
+    return $hash;
 }
 
 =head1 SEE ALSO
