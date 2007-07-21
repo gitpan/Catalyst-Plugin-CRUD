@@ -5,7 +5,7 @@ use warnings;
 use base qw(Catalyst::Controller::CRUD);
 use Scalar::Util qw(blessed);
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 =head1 NAME
 
@@ -69,13 +69,28 @@ None by default.
 
 This method returns model object having $id.
 
+Triggers:
+
+ $self->call_trigger( 'get_model_after', $c, $hash );
+
 =cut
 
 sub get_model {
     my ( $this, $c, $self, $id ) = @_;
-    my $setting = $self->setting($c);
-    my $primary = $setting->{primary};
-    my $model   = $c->model( $self->setting($c)->{model} )->find({ $primary => $id });
+
+    my $name    = $self->setting($c)->{name};
+    my $primary = $self->setting($c)->{primary};
+    my $model   = $c->model( $self->setting($c)->{model} )->find( $primary => $id );
+
+    if (defined $model) {
+        my $hash = $model->toHashRef;
+        $self->call_trigger( 'get_model_after', $c, $hash );
+        $c->stash->{ $name } = $hash;
+    } else {
+        $c->res->status(404);
+        $c->res->body("404 Not Found\n");
+    }
+
     return $model;
 }
 
@@ -83,27 +98,30 @@ sub get_model {
 
 This method returns model objects.
 
-Triggers:
-
- $self->call_trigger( 'list_where_make_phrase', $c, $where );
- $self->call_trigger( 'list_order_make_phrase', $c, $order );
-
 =cut
 
 sub get_models {
     my ( $this, $c, $self ) = @_;
 
-    my $where = { disable => 0 };
-    $self->call_trigger( 'list_where_make_phrase', $c, $where );
+    my $name    = $self->setting($c)->{name};
+    my $primary = $self->setting($c)->{primary};
+    my $where   = $c->stash->{$name}->{where} ? $c->stash->{$name}->{where} : { disable => 0 };
+    my $order   = $c->stash->{$name}->{order} ? $c->stash->{$name}->{order} : { order_by => $primary };
+    my $it      = $c->model( $self->setting($c)->{model} )->search( $where, $order );
 
-    my $order = { order_by => $self->setting($c)->{primary} };
-    $self->call_trigger( 'list_order_make_phrase', $c, $order );
-
-    my @models  = $c->model( $self->setting($c)->{model} )->search( $where, $order );
+    # pager
+    if (defined $order->{rows}) {
+        $c->stash->{$name}->{pager}->{total}   = $it->pager->total_entries;
+        $c->stash->{$name}->{pager}->{pages}   = $it->pager->last_page;
+        $c->stash->{$name}->{pager}->{current} = $it->pager->current_page;
+    }
 
     my @result;
-    foreach (@models) {
-        push(@result, $_->toHashRef);
+    while (my $model = $it->next) {
+        my $hash = $model->toHashRef;
+        $self->call_trigger( 'get_model_after', $c, $hash );
+        $c->stash->{ $name . '_' . $primary . 's' }->{ $hash->{$primary} } = $hash;
+        push( @result, $hash );
     }
     return \@result;
 }

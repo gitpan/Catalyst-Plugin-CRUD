@@ -6,14 +6,16 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test::More tests => 8;
-BEGIN { use_ok('XML::Simple') };
-BEGIN { use_ok('Class::Trigger') };
-BEGIN { use_ok('Jcode') };
-BEGIN { use_ok('Catalyst::Plugin::CRUD') };
-BEGIN { use_ok('Catalyst::Controller::CRUD') };
-BEGIN { use_ok('Catalyst::Controller::CRUD::CDBI') };
-BEGIN { use_ok('Catalyst::Controller::CRUD::DBIC') };
-BEGIN { use_ok('Catalyst::Helper::Model::CRUD') };
+BEGIN {
+    use_ok('XML::Simple');
+    use_ok('Class::Trigger');
+    use_ok('Jcode');
+    use_ok('Catalyst::Plugin::CRUD');
+    use_ok('Catalyst::Controller::CRUD');
+    use_ok('Catalyst::Controller::CRUD::CDBI');
+    use_ok('Catalyst::Controller::CRUD::DBIC');
+    use_ok('Catalyst::Helper::Model::CRUD');
+};
 
 #########################
 

@@ -1,5 +1,18 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
+0.20 Sat Sep 21 16:31:00 2007
+    - added pager support at Catalyst::Conroller::CRUD::DBIC
+        - ref) MyApp/root/template/xxxx/list.tt
+
+            search result (total [% c.stash.xxxx.pager.total %] entries):
+            [% FOREACH page = [1 .. c.stash.xxxx.pager.pages] %]
+              [% IF page == c.stash.xxxx.pager.current %]
+              [% page %]
+              [% ELSE %]
+              <a href="/xxxx/list?page=[% page %]">[% page %]</a>
+              [% END %]
+            [% END %]
+
 0.19 Tue Jun 5 03:27:00 2007
     - wrote tutorials
         - http://d.hatena.ne.jp/Bayside/20070511/p1

@@ -6,7 +6,7 @@ use Catalyst::Controller::CRUD::CDBI;
 use Catalyst::Controller::CRUD::DBIC;
 use Scalar::Util qw(blessed);
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 =head1 NAME
 
