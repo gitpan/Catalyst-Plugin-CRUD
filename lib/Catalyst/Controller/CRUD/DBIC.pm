@@ -5,7 +5,7 @@ use warnings;
 use base qw(Catalyst::Controller::CRUD);
 use Scalar::Util qw(blessed);
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 =head1 NAME
 
@@ -80,7 +80,12 @@ sub get_model {
 
     my $name    = $self->setting($c)->{name};
     my $primary = $self->setting($c)->{primary};
-    my $model   = $c->model( $self->setting($c)->{model} )->find( $primary => $id );
+    my $model;
+    if ($self->can('get_model')) {
+        $model = $self->get_model( $c, $id );
+    } else {
+        $model = $c->model( $self->setting($c)->{model} )->find( $primary => $id );
+    }
 
     if (defined $model) {
         my $hash = $model->toHashRef;
@@ -136,7 +141,7 @@ Jun Shimizu, E<lt>bayside@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006,2007 by Jun Shimizu
+Copyright (C) 2006-2007 by Jun Shimizu
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.2 or,

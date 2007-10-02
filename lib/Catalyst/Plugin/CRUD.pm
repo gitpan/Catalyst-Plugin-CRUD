@@ -6,7 +6,7 @@ use Catalyst::Controller::CRUD::CDBI;
 use Catalyst::Controller::CRUD::DBIC;
 use Scalar::Util qw(blessed);
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 =head1 NAME
 
@@ -158,7 +158,7 @@ Jun Shimizu, E<lt>bayside@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006,2007 by Jun Shimizu
+Copyright (C) 2006-2007 by Jun Shimizu
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.2 or,

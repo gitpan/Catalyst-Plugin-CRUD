@@ -1,5 +1,9 @@
 Revision history for Perl extension Catalyst::Plugin::CRUD.
 
+0.21 Wed Oct 3 4:18:00 2007
+    - special version for OSC2007 Tokyo/Fall
+    - Catalyst::Controller::CRUD calls MyApp::C::Some->get_model if can get_model
+
 0.20 Sat Sep 21 16:31:00 2007
     - added pager support at Catalyst::Conroller::CRUD::DBIC
         - ref) MyApp/root/template/xxxx/list.tt

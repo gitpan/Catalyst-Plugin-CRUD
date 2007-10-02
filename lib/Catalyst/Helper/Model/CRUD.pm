@@ -4,7 +4,7 @@ use strict;
 use Jcode;
 use XML::Simple;
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 =head1 NAME
 
@@ -488,25 +488,32 @@ sub mk_compclass {
         # テンプレート出力
         my $path_name = lc $class_name;
         $helper->mk_dir("$template_dir/$path_name");
+
+        # Template-Toolkit
         $helper->render_file( 'create_tt', "$template_dir/$path_name/create.tt", $controller_vars );
         $helper->render_file( 'read_tt',   "$template_dir/$path_name/read.tt",   $controller_vars );
         $helper->render_file( 'update_tt', "$template_dir/$path_name/update.tt", $controller_vars );
         $helper->render_file( 'list_tt',   "$template_dir/$path_name/list.tt",   $controller_vars );
 
-        $helper->render_file( 'create_cs', "$template_dir/$path_name/create.cs", $controller_vars );
-        $helper->render_file( 'read_cs',   "$template_dir/$path_name/read.cs",   $controller_vars );
-        $helper->render_file( 'update_cs', "$template_dir/$path_name/update.cs", $controller_vars );
-        $helper->render_file( 'list_cs',   "$template_dir/$path_name/list.cs",   $controller_vars );
+        # ClearSilver
+        #$helper->render_file( 'create_cs', "$template_dir/$path_name/create.cs", $controller_vars );
+        #$helper->render_file( 'read_cs',   "$template_dir/$path_name/read.cs",   $controller_vars );
+        #$helper->render_file( 'update_cs', "$template_dir/$path_name/update.cs", $controller_vars );
+        #$helper->render_file( 'list_cs',   "$template_dir/$path_name/list.cs",   $controller_vars );
     }
 
     # ヘッダー・フッター出力
     unless ( scalar @limited_file ) {
         my $header_footer_vars;
         $header_footer_vars->{'app_name'} = $helper->{'app'};
+
+        # Template-Toolkit
         $helper->render_file( 'header_html', "$template_dir/header.tt", $header_footer_vars );
         $helper->render_file( 'footer_html', "$template_dir/footer.tt", $header_footer_vars );
-        $helper->render_file( 'header_html', "$template_dir/header.cs", $header_footer_vars );
-        $helper->render_file( 'footer_html', "$template_dir/footer.cs", $header_footer_vars );
+
+        # ClearSilver
+        #$helper->render_file( 'header_html', "$template_dir/header.cs", $header_footer_vars );
+        #$helper->render_file( 'footer_html', "$template_dir/footer.cs", $header_footer_vars );
     }
 
     # 言語ファイル出力
@@ -535,7 +542,7 @@ Jun Shimizu, E<lt>bayside@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006,2007 by Jun Shimizu
+Copyright (C) 2006-2007 by Jun Shimizu
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.2 or,

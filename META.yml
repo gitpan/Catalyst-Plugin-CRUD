@@ -1,17 +1,14 @@
---- #YAML:1.0
-name:                Catalyst-Plugin-CRUD
-version:             0.20
-abstract:            CRUD (create/read/update/delete) Plugin for Catalyst
-license:             ~
-generated_by:        ExtUtils::MakeMaker version 6.32
-distribution_type:   module
-requires:     
-    Class::Trigger:                0.11
-    Jcode:                         2.06
-    Scalar::Util:                  1.19
-    XML::Simple:                   2.16
-meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
-author:
-    - Jun Shimizu <bayside@cpan.org>
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Catalyst-Plugin-CRUD
+version:      0.21
+version_from: lib/Catalyst/Plugin/CRUD.pm
+installdirs:  site
+requires:
+    Class::Trigger:                0.08
+    Jcode:                         2.05
+    Scalar::Util:                  1.14
+    XML::Simple:                   2.14
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.30

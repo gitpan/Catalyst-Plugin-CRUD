@@ -14,8 +14,10 @@ sample/TinyURL/tinyurl.yml
 sample/TinyURL/README
 sample/TinyURL/Changes
 sample/TinyURL/Makefile.PL
+sample/TinyURL/db/tinyurl.db
 sample/TinyURL/sql/tinyurl.xml
-sample/TinyURL/sql/schema/tiny_url.sql
+sample/TinyURL/sql/schema/tiny_url.sqlite3
+sample/TinyURL/sql/schema/tiny_url.pg
 sample/TinyURL/t/01app.t
 sample/TinyURL/t/02pod.t
 sample/TinyURL/t/03podcoverage.t

@@ -1,4 +1,4 @@
-Catalyst-Plugin-CRUD version 0.20
+Catalyst-Plugin-CRUD version 0.21
 =================================
 
 The README is used to introduce the module and provide instructions on
@@ -25,13 +25,14 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  Catalyst, DBIx::Class, Class::DBI, Class::Trigger
+  Catalyst, DBIx::Class, Class::DBI, Template::Toolkit
+  Class::Trigger, Scalar::Util, Jcode, XML::Simple
 
 COPYRIGHT AND LICENCE
 
 Put the correct copyright and licence information here.
 
-Copyright (C) 2006 by Jun Shimizu
+Copyright (C) 2006-2007 by Jun Shimizu
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.2 or,
